@@ -1,0 +1,70 @@
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #fcf8ff;
+  --color-on-primary-container: #dad7ff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-surface-variant: #e4e1ee;
+  --color-tertiary-container: #a44100;
+  --color-error: #ba1a1a;
+  --color-on-secondary-fixed-variant: #38485d;
+  --color-on-tertiary-container: #ffd2be;
+  --color-surface-dim: #dcd8e5;
+  --color-surface-container-lowest: #ffffff;
+  --color-background: #fcf8ff;
+  --color-tertiary-fixed: #ffdbcc;
+  --color-on-secondary-container: #54647a;
+  --color-on-secondary: #ffffff;
+  --color-on-tertiary-fixed-variant: #7b2f00;
+  --color-on-primary: #ffffff;
+  --color-on-error: #ffffff;
+  --color-surface-container: #f0ecf9;
+  --color-inverse-on-surface: #f3effc;
+  --color-inverse-primary: #c3c0ff;
+  --color-secondary: #505f76;
+  --color-on-background: #1b1b24;
+  --color-on-surface-variant: #464555;
+  --color-on-tertiary-fixed: #351000;
+  --color-surface-container-high: #eae6f4;
+  --color-on-tertiary: #ffffff;
+  --color-inverse-surface: #302f39;
+  --color-on-secondary-fixed: #0b1c30;
+  --color-surface-container-low: #f5f2ff;
+  --color-surface-tint: #4d44e3;
+  --color-on-primary-fixed-variant: #3323cc;
+  --color-on-surface: #1b1b24;
+  --color-secondary-fixed-dim: #b7c8e1;
+  --color-tertiary: #7e3000;
+  --color-secondary-fixed: #d3e4fe;
+  --color-outline-variant: #c7c4d8;
+  --color-outline: #777587;
+  --color-surface-container-highest: #e4e1ee;
+  --color-primary-container: #4f46e5;
+  --color-primary-fixed-dim: #c3c0ff;
+  --color-on-primary-fixed: #0f0069;
+  --color-primary: #3525cd;
+  --color-surface-bright: #fcf8ff;
+  --color-tertiary-fixed-dim: #ffb695;
+  --color-secondary-container: #d0e1fb;
+  --color-primary-fixed: #e2dfff;
+}
+
+:root {
+  --background: #f9fafb;
+  --foreground: #101828;
+  --font-display: "Inter", sans-serif;
+}
+
+body {
+  font-family: var(--font-display);
+}
+
+.chart-gradient {
+  background: linear-gradient(
+    180deg,
+    rgba(79, 70, 229, 0.1) 0%,
+    rgba(79, 70, 229, 0) 100%
+  );
+}
