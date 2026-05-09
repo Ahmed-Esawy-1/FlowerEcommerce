@@ -1,4 +1,4 @@
-package com.ecommerce.dashboard.dto;
+package com.ecommerce.dashboard.dto.request;
 
 public class OrderItemRequest {
   private Long productId;

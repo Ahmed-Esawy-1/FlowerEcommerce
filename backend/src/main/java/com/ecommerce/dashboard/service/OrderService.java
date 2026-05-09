@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.ecommerce.dashboard.dto.OrderItemRequest;
+import com.ecommerce.dashboard.dto.request.OrderItemRequest;
 import com.ecommerce.dashboard.model.Order;
 import com.ecommerce.dashboard.model.OrderItem;
 import com.ecommerce.dashboard.model.Product;

@@ -1,18 +1,20 @@
-import { useState } from "react";
-
 import { Routes, Route } from "react-router";
-import MainLayout from "./components/layout/MainLayout";
+
 import Login from "./pages/Login";
+import MainLayout from "./components/layout/MainLayout";
 import Home from "./pages/dashboard/Home";
+
 import Products from "./pages/products/Products";
 import CreateProduct from "./pages/products/CreateProduct";
 import UpdateProduct from "./pages/products/UpdateProduct";
+
+import Categories from "./pages/categories/Categories";
+import CreateCategory from "./pages/categories/CreateCategory";
+import UpdateCategory from "./pages/categories/UpdateCategory";
+
 import Users from "./pages/Users/Users";
-import axios from "axios";
 
 function App() {
-  axios.defaults.withCredentials = true;
-
   return (
     <Routes>
       <Route path="/" element={<Login />} />
@@ -25,17 +27,15 @@ function App() {
           <Route path="create-product" element={<CreateProduct />} />
           <Route path="update-product/:productId" element={<UpdateProduct />} />
         </Route>
-        {/* 
+
         <Route path="/categories">
           <Route index element={<Categories />} />
+          <Route path="create-category" element={<CreateCategory />} />
+          <Route
+            path="update-category/:categoryId"
+            element={<UpdateCategory />}
+          />
         </Route>
-
-        <Route path="/posts">
-          <Route index element={<Posts />} />
-          <Route path=":postId" element={<PostDetails />} />
-          <Route path="create-post" element={<CreatePost />} />
-          <Route path="update-post" element={<UpdatePost />} />
-        </Route>*/}
 
         <Route path="/users">
           <Route index element={<Users />} />

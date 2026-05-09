@@ -1,23 +1,20 @@
 package com.ecommerce.dashboard.controller;
 
 import java.util.List;
+import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ecommerce.dashboard.dto.LoginRequest;
+import com.ecommerce.dashboard.dto.request.LoginRequest;
+import com.ecommerce.dashboard.dto.request.RegisterRequest;
+import com.ecommerce.dashboard.dto.response.UserResponse;
 import com.ecommerce.dashboard.model.Role;
 import com.ecommerce.dashboard.model.User;
-import com.ecommerce.dashboard.repository.UserRepository;
 import com.ecommerce.dashboard.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,36 +29,28 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 
 
-
 @RestController
 @RequestMapping("/users")
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class UserController {
   
-  @Autowired
-  UserRepository userRepo;
+  public final UserService userService;
+  
+  public UserController(UserService userService) {
+    this.userService = userService;
+  }
 
-  @Autowired
-  UserService userService;
-
-  @Autowired
-  private AuthenticationManager authenticationManager;
-
-
-  @Value("${file.upload-dir}")
-  private String uploadDir;
 
   // Get All User
   @GetMapping
-  public List<User> getUsers() {
-    return userRepo.findAll();
+  public List<UserResponse> getUsers() {
+    return userService.getAllUsers();
   }
 
   // Find User By id
   @GetMapping("/{id}")
-  public User getUserById(@PathVariable Long id) {
-      return userRepo.findById(id)
-          .orElseThrow(() -> new RuntimeException("User not found"));
+  public UserResponse getUserById(@PathVariable Long id) {
+      return userService.getUserById(id);
   }
 
   // Create New User
@@ -71,7 +60,8 @@ public class UserController {
     @RequestParam("email") String email,
     @RequestParam("password") String password,
     @RequestParam("role") String role,
-    @RequestParam(value = "image", required = false) MultipartFile file
+    @RequestParam(value = "image", required = false) MultipartFile file,
+    Authentication authentication
   ) {
 
     User user = new User();
@@ -80,9 +70,24 @@ public class UserController {
     user.setPassword(password);
     user.setRole(Role.valueOf(role.toUpperCase()));
 
-    return userService.register(user, file);
+    return userService.register(user, file, authentication);
   }
 
+  @PostMapping("/shop/register")
+  public User shopRegister(
+    @RequestParam("name") String name,
+    @RequestParam("email") String email,
+    @RequestParam("password") String password,
+    @RequestParam(value = "image", required = false) MultipartFile file
+  ) {
+
+    RegisterRequest req = new RegisterRequest();
+    req.setName(name);
+    req.setEmail(email);
+    req.setPassword(password);
+
+    return userService.registerFromShop(req, file);
+  }
   
   // Update User Info
   @PutMapping(value = "/{id}", consumes = "multipart/form-data")
@@ -91,7 +96,6 @@ public class UserController {
     @RequestParam("name") String name,
     @RequestParam("email") String email,
     @RequestParam(value = "password", required = false) String password,
-    @RequestParam("role") String role,
     @RequestParam(value = "image", required = false) MultipartFile file
   ) {
 
@@ -99,7 +103,6 @@ public class UserController {
     user.setName(name);
     user.setEmail(email);
     user.setPassword(password);
-    user.setRole(Role.valueOf(role.toUpperCase()));
 
     return userService.updateUser(id, user, file);
   }
@@ -113,65 +116,35 @@ public class UserController {
 
   // Login 
   @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest req, HttpServletRequest request) {
-
-      try {
-        Authentication authentication = authenticationManager.authenticate(
-          new UsernamePasswordAuthenticationToken(
-            req.getEmail().trim(),
-            req.getPassword().trim()
-          )
-        );
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        request.getSession(true)
-          .setAttribute("SPRING_SECURITY_CONTEXT",
-            SecurityContextHolder.getContext());
-
-        return ResponseEntity.ok("LOGIN_SUCCESS");
-      } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(403)
-                .body(e.getMessage());
-        }
-   
-
-
-    
-    
-    
+  public ResponseEntity<?> login(@RequestBody LoginRequest req, HttpServletRequest request) {
+    return userService.login(req, request);
   }
 
   // Check the Login Session
   @GetMapping("/me")
   public ResponseEntity<?> me(Authentication authentication) {
-    if(authentication == null || !authentication.isAuthenticated()) {
-      return ResponseEntity.status(401).body("Unauthorized");
-    }
+    try {
+        UserResponse user = userService.getAuthenticatedUser(authentication);
 
-    boolean allowed = authentication.getAuthorities()
-        .stream()
-        .anyMatch(auth ->
-            auth.getAuthority().equals("ROLE_ADMIN") ||
-            auth.getAuthority().equals("ROLE_MANAGER")
+        boolean dashboardAccess = userService.isDashboardUser(authentication);
+
+        return ResponseEntity.ok(
+            Map.of(
+                "user", user,
+                "dashboardAccess", dashboardAccess
+            )
         );
 
-    if (!allowed) {
-      return ResponseEntity.status(403).body("Access denied");
+    } catch (Exception e) {
+      return ResponseEntity.status(401).body(e.getMessage());
+    }
   }
-
-    return ResponseEntity.ok("AUTHENTICATED");
-  }
+  
 
   // Log Out
   @PostMapping("/logout")
   public ResponseEntity<String> logout(HttpServletRequest request) {
-    request.getSession().invalidate();
-    SecurityContextHolder.clearContext();
-
-    return ResponseEntity.ok("LOGOUT_SUCCESS");
-
+    return userService.logout(request);
   }
   
   

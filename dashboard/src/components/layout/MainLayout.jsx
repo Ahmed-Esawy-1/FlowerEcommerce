@@ -11,7 +11,13 @@ const MainLayout = () => {
     async function checkAuth() {
       try {
         const response = await api.get("/users/me");
-        setLoading(false);
+        const { user, dashboardAccess } = response.data;
+
+        if (!dashboardAccess) {
+          navigate("/");
+        } else {
+          setLoading(false);
+        }
       } catch (error) {
         navigate("/");
       }

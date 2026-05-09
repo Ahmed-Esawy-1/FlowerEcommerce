@@ -40,7 +40,16 @@ public class SecurityConfig {
           .authorizeHttpRequests(auth -> auth
               .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
               .requestMatchers("/users/login").permitAll()
-              .requestMatchers("/users/me").hasAnyRole("MANAGER", "ADMIN")
+
+              // Dashboard
+              .requestMatchers("/admin/**").hasAnyRole("ADMIN", "MANAGER")
+
+              // Shop
+              .requestMatchers("/shop/**").permitAll()
+
+              .requestMatchers("/users/me")
+              .hasAnyRole("MANAGER", "ADMIN")
+
               .anyRequest().authenticated()
           )
           .formLogin(form -> form.disable())

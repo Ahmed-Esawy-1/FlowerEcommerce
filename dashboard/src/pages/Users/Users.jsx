@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
+import { BASE_URL } from "../../api/config";
 
 import ShieldIcon from "@mui/icons-material/Shield";
 import EditNoteIcon from "@mui/icons-material/EditNote";
@@ -18,7 +19,8 @@ const Users = () => {
   useEffect(() => {
     async function getAllUsers() {
       try {
-        const response = await axios.get("http://localhost:8080/api/users");
+        const response = await api.get("users");
+        console.log(response.data);
         setAllUser(response.data);
       } catch (error) {
         console.log(error);
@@ -172,7 +174,11 @@ const Users = () => {
                         alt="User Avatar"
                         className="w-10 h-10 rounded-full object-cover border border-slate-200"
                         data-alt="professional headshot of a smiling woman with dark hair in a corporate setting with neutral lighting"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDycsNhD7QLtcdq_eb5uwqOeFdCwjDe5B7NWUi2nNOkDAXTwvXoCBhNNOzut3q7gNuTkgpFDWqGVX6YboyGG09U_h9Q49fdQnBiI_NF0IItQInTFlwuvYhr30vmgchSrhzb3Z3EaNX4Lf6GVHNl4vImXRxifbahvQfhPnl0MKZEBBcG2jB7dfsJA8zx4A8_Jw0Y3pLxxDLxyDsLHQQKUqHXwUV42qcZ8naSsKbtEuM6g6Ud7hYoUWk4kOEJoMuCs67tbXoLarYaj5k"
+                        src={
+                          user?.imageUrl
+                            ? `${BASE_URL}${user.imageUrl}`
+                            : `https://lh3.googleusercontent.com/aida-public/AB6AXuDycsNhD7QLtcdq_eb5uwqOeFdCwjDe5B7NWUi2nNOkDAXTwvXoCBhNNOzut3q7gNuTkgpFDWqGVX6YboyGG09U_h9Q49fdQnBiI_NF0IItQInTFlwuvYhr30vmgchSrhzb3Z3EaNX4Lf6GVHNl4vImXRxifbahvQfhPnl0MKZEBBcG2jB7dfsJA8zx4A8_Jw0Y3pLxxDLxyDsLHQQKUqHXwUV42qcZ8naSsKbtEuM6g6Ud7hYoUWk4kOEJoMuCs67tbXoLarYaj5k`
+                        }
                       />
                       <div>
                         <p className="text-on-surface text-sm font-semibold">

@@ -16,7 +16,7 @@ public class ProductImage {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  private String imagePath;
+  private String url;
 
   @JsonBackReference("product-images")
   @ManyToOne
@@ -31,12 +31,12 @@ public class ProductImage {
     this.id = id;
   }
 
-  public String getImagePath() {
-    return imagePath;
+  public String getUrl() {
+    return url;
   }
 
-  public void setImagePath(String imgPath) {
-    this.imagePath = imgPath;
+  public void setUrl(String imgPath) {
+    this.url = imgPath;
   }
 
   public Product getProduct() {

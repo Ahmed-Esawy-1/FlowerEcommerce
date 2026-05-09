@@ -16,21 +16,25 @@ const UpdateProduct = () => {
     categoryId: "",
   });
 
-  const [existingImages, setExistingImages] = useState([]); // from DB
-  const [newImages, setNewImages] = useState([]); // files user adds
-  const [previews, setPreviews] = useState([]); // UI previews
+  const [existingImages, setExistingImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
+  const [newImagesPreview, setNewImagesPreview] = useState([]);
+  const [removedImagesIds, setRemovedImagesIds] = useState([]);
   const [categories, setCategories] = useState([]);
 
-  // Get Categories
+  // useEffect(() => {
+  //   console.log("existingImages => ", existingImages);
+  //   console.log("Categories => ", categories);
+  // }, [existingImages, categories]);
+
+  // Get All Categories
   useEffect(() => {
     async function getCategories() {
       try {
-        const response = await axios.get(
-          "http://localhost:8080/api/categories",
-        );
+        const response = await api.get("categories");
         setCategories(response.data);
       } catch (error) {
-        console.log(error);
+        console.log("Get Categories Error => ", error);
       }
     }
     getCategories();
@@ -39,29 +43,32 @@ const UpdateProduct = () => {
   // Get Product Info
   useEffect(() => {
     async function getProductById() {
-      const response = await axios.get(
-        "http://localhost:8080/api/products/" + productId,
-      );
+      const response = await api.get("products/" + productId);
 
       const data = response.data;
+      console.log(data);
 
       setProduct({
         title: data.title,
         price: data.price,
         description: data.description,
-        categoryId: data.categoryId || categories[0].id,
+        categoryId: data.category?.id || "",
       });
 
-      setExistingImages(data.imagesPath || []);
-
-      setPreviews(
-        (data.imagesPath || []).map((img) => `http://localhost:8080${img}`),
+      setExistingImages(
+        (data.images || []).map((img) => {
+          return {
+            id: img.id,
+            url: `http://localhost:8080${img.url}`,
+          };
+        }),
       );
     }
 
     getProductById();
   }, [productId]);
 
+  // Inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProduct({
@@ -70,36 +77,30 @@ const UpdateProduct = () => {
     });
   };
 
+  // Images
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-
     setNewImages((prev) => [...prev, ...files]);
-
-    const newPreviews = files.map((file) => URL.createObjectURL(file));
-
-    setPreviews((prev) => [...prev, ...newPreviews]);
+    console.log(e.target.files);
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setNewImagesPreview((prev) => [...prev, ...previews]);
   };
 
-  const removeImage = (index) => {
-    setPreviews((prev) => prev.filter((_, i) => i !== index));
+  const removeExistingImage = (id) => {
+    setRemovedImagesIds((prev) => [...prev, id]);
+    setExistingImages((prev) => prev.filter((img, i) => img.id !== id));
+  };
 
-    // if removing from existing images
-    if (index < existingImages.length) {
-      const updated = [...existingImages];
-      updated.splice(index, 1);
-      setExistingImages(updated);
-    } else {
-      // remove from new images
-      const newIndex = index - existingImages.length;
-
-      const updatedFiles = [...newImages];
-      updatedFiles.splice(newIndex, 1);
-      setNewImages(updatedFiles);
-    }
+  const removeNewImage = (index) => {
+    setNewImages((prev) => prev.filter((_, i) => i !== index));
+    setNewImagesPreview((prev) => prev.filter((_, i) => i !== index));
   };
 
   async function handleFormSubmit(e) {
     e.preventDefault();
+
+    console.log(newImages);
+    console.log(removedImagesIds);
 
     try {
       const formData = new FormData();
@@ -109,25 +110,19 @@ const UpdateProduct = () => {
       formData.append("description", product.description);
       formData.append("categoryId", product.categoryId);
 
-      // ✅ NEW IMAGES ONLY
       newImages.forEach((file) => {
-        formData.append("images", file);
+        formData.append("newImages", file);
       });
 
-      // optional: send remaining existing images ids
-      existingImages.forEach((img) => {
-        formData.append("images", img);
+      removedImagesIds.forEach((id) => {
+        formData.append("removedImagesIds", id);
       });
 
-      await axios.put(
-        "http://localhost:8080/api/products/" + productId,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+      await api.put("products/" + productId, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-      );
+      });
 
       alert("Product updated ✅");
     } catch (error) {
@@ -191,6 +186,7 @@ const UpdateProduct = () => {
                 value={product.categoryId}
                 onChange={handleInputChange}
               >
+                <option value="">Not Classification</option>
                 {categories.map((cat, i) => (
                   <option value={cat.id} key={i}>
                     {cat.name}
@@ -198,7 +194,7 @@ const UpdateProduct = () => {
                 ))}
               </select>
             </div>
-            <div className="col-span-2">
+            <div className="col-span-2 mb-4">
               <label className="block text-slate-700 mb-2">images</label>
               <input
                 className="w-full px-4 py-2.5 outline-none border border-slate-300 focus:border-indigo-500 rounded-lg focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400"
@@ -207,24 +203,44 @@ const UpdateProduct = () => {
                 multiple
                 onChange={handleFileChange}
               />
-              {previews.length > 0 && (
-                <div className="flex gap-3 mt-4 flex-wrap">
-                  {previews.map((src, i) => (
-                    <div className="max-h-60 aspect-[6/7] relative" key={i}>
-                      <img
-                        src={src}
-                        alt="preview"
-                        className="w-full h-full object-cover border rounded-lg"
-                      />
-                      <CloseIcon
-                        className="absolute top-2 right-2 bg-black p-2 rounded-full text-error font-black cursor-pointer"
-                        fontSize="large"
-                        onClick={() => removeImage(i)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="flex gap-3 flex-wrap mt-4">
+                {existingImages.length > 0 && (
+                  <div className="flex gap-3 flex-wrap">
+                    {existingImages.map((img, i) => (
+                      <div className="max-h-60 aspect-[6/7] relative" key={i}>
+                        <img
+                          src={img.url}
+                          alt="preview"
+                          className="w-full h-full object-cover border rounded-lg"
+                        />
+                        <CloseIcon
+                          className="absolute top-2 right-2 bg-black p-2 rounded-full text-error font-black cursor-pointer"
+                          fontSize="large"
+                          onClick={() => removeExistingImage(img.id)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {newImagesPreview.length > 0 && (
+                  <div className="flex gap-3 flex-wrap">
+                    {newImagesPreview.map((src, i) => (
+                      <div className="max-h-60 aspect-[6/7] relative" key={i}>
+                        <img
+                          src={src}
+                          alt="preview"
+                          className="w-full h-full object-cover border rounded-lg"
+                        />
+                        <CloseIcon
+                          className="absolute top-2 right-2 bg-black p-2 rounded-full text-error font-black cursor-pointer"
+                          fontSize="large"
+                          onClick={() => removeNewImage(i)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="col-span-2 mb-4">
               <label className="block text-slate-700 mb-2">Description</label>

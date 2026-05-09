@@ -3,7 +3,7 @@ package com.ecommerce.dashboard.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ecommerce.dashboard.dto.OrderRequest;
+import com.ecommerce.dashboard.dto.request.OrderRequest;
 import com.ecommerce.dashboard.model.Order;
 import com.ecommerce.dashboard.repository.OrderRepository;
 import com.ecommerce.dashboard.service.OrderService;

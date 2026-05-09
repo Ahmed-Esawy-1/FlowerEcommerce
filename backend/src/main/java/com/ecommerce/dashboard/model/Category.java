@@ -1,20 +1,18 @@
 package com.ecommerce.dashboard.model;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 
 
 
@@ -24,8 +22,10 @@ public class Category {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+  @Column(unique = true, nullable = false)
   private String name;
-  private String imagePath;
+  @Column(nullable = true)
+  private String imageUrl;
   @CreationTimestamp
   private LocalDateTime createdAt;
   @UpdateTimestamp
@@ -45,11 +45,11 @@ public class Category {
     this.name = name;
   }
 
-  public String getImagePath() {
-    return imagePath;
+  public String getImageUrl() {
+    return imageUrl;
   }
-  public void setImagePath(String imagePath) {
-    this.imagePath = imagePath;
+  public void setImageUrl(String imageUrl) {
+    this.imageUrl = imageUrl;
   }
 
   public LocalDateTime getCreatedAt() {

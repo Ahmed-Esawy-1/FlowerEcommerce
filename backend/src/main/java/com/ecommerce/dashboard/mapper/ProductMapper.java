@@ -1,31 +1,50 @@
 package com.ecommerce.dashboard.mapper;
 
+import com.ecommerce.dashboard.dto.response.CategorySimpleResponse;
+import com.ecommerce.dashboard.dto.response.ProductImageResponse;
+import com.ecommerce.dashboard.dto.response.ProductResponse;
 import com.ecommerce.dashboard.model.Product;
-import com.ecommerce.dashboard.dto.ProductResponse;
+
 import java.util.List;
 
 public class ProductMapper {
 
     public static ProductResponse mapToDto(Product product) {
 
-        ProductResponse dto = new ProductResponse();
+        ProductResponse response = new ProductResponse();
 
-        dto.setId(product.getId());
-        dto.setTitle(product.getTitle());
-        dto.setPrice(product.getPrice());
-        dto.setDescription(product.getDescription());
+        response.setId(product.getId());
+        response.setTitle(product.getTitle());
+        response.setPrice(product.getPrice());
+        response.setDescription(product.getDescription());
 
-        dto.setCategoryId(
-            product.getCategory() != null ? product.getCategory().getId() : null
-        );
+        CategorySimpleResponse cat = null;
+        if(product.getCategory() != null) {
+            cat = new CategorySimpleResponse();
+            cat.setId(product.getCategory().getId());
+            cat.setName(product.getCategory().getName());
+        }
 
-        List<String> images = product.getImages()
+        response.setCategory(cat);
+
+        List<ProductImageResponse> images = 
+        product.getImages() != null ?
+            product.getImages()
             .stream()
-            .map(img -> "/api/upload_images/products/" + img.getImagePath())
-            .toList();
+            .map(img -> { 
+                ProductImageResponse imageResponse = new ProductImageResponse();
 
-        dto.setImagesPath(images);
+                imageResponse.setId(img.getId());
+                imageResponse.setUrl("/api/upload_images/products/" + img.getUrl());
+        
+                return imageResponse;
+            })
+            .toList()
+            :List.of();
 
-        return dto;
+        response.setImages(images);
+        
+
+        return response;
     }
 }

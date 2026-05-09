@@ -5,6 +5,7 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import MailIcon from "@mui/icons-material/Mail";
 import LockIcon from "@mui/icons-material/Lock";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { appBarClasses } from "@mui/material/AppBar";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -12,30 +13,36 @@ const Login = () => {
     email: "",
     password: "",
   });
+  const [error, setError] = useState("");
 
   function handleInputChange(e) {
     const { name, value } = e.target;
     setUserInfo((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleFormSubmit(e) {
+  async function handleFormSubmit(e) {
     e.preventDefault();
+
     const data = {
       email: userInfo.email.trim(),
       password: userInfo.password.trim(),
     };
-    const login = async () => {
-      try {
-        const response = await api.post("/users/login", data);
-        if (response.data === "LOGIN_SUCCESS") {
-          await api.get("/users/me");
-          navigate("/dashboard");
-        }
-      } catch (error) {
-        alert(error.response?.data || "Login failed");
+    try {
+      const response = await api.post("/users/login", data);
+      const user = response.data;
+
+      if (user.role === "USER") {
+        setError(() => "Access denied. Admins and Managers only.");
+        alert(error);
+        return;
       }
-    };
-    login();
+
+      sessionStorage.setItem("userLogin", JSON.stringify(user));
+      navigate("/dashboard");
+    } catch (error) {
+      setError(error.response?.data || "Invalid email or password");
+      alert(error.response?.data || "Login failed");
+    }
   }
 
   return (

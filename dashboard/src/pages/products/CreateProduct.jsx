@@ -3,7 +3,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
-import axios from "axios";
+import api from "../../api/axios";
 import { Link } from "react-router";
 const CreateProduct = () => {
   const [product, setProduct] = useState({
@@ -16,20 +16,12 @@ const CreateProduct = () => {
   const [categories, setCategories] = useState([]);
   const [previews, setPreviews] = useState([]);
 
+  // Get All Categories
   useEffect(() => {
     async function getCategories() {
       try {
-        const response = await axios.get(
-          "http://localhost:8080/api/categories",
-        );
+        const response = await api.get("categories");
         setCategories(response.data);
-
-        if (response.data.length > 0) {
-          setProduct((prev) => ({
-            ...prev,
-            categoryId: response.data[0].id.toString(),
-          }));
-        }
       } catch (error) {
         console.log(error);
       }
@@ -37,7 +29,7 @@ const CreateProduct = () => {
     getCategories();
   }, []);
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProduct({
       ...product,
@@ -70,7 +62,7 @@ const CreateProduct = () => {
     }));
   };
 
-  // Send Form To backend
+  // Submit
   async function handleFormSubmit(e) {
     console.log(product);
     e.preventDefault();
@@ -84,7 +76,7 @@ const CreateProduct = () => {
         formData.append("images", file);
       });
 
-      await axios.post("http://localhost:8080/api/products", formData, {
+      await api.post("products", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -124,11 +116,11 @@ const CreateProduct = () => {
           </p>
         </div>
       </div>
-      {/*  Form Layout: Bento Grid Style  */}
+      {/*  Form  */}
       <form className="space-y-6" onSubmit={handleFormSubmit}>
         <section className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
           <div className="grid grid-cols-2 gap-lg">
-            <div className="col-span-2">
+            <div className="col-span-2 mb-4">
               <label className="block text-slate-700 mb-2">Product Name</label>
               <input
                 className="w-full px-4 py-2.5 outline-none border border-slate-300 focus:border-indigo-500 rounded-lg focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400"
@@ -136,10 +128,10 @@ const CreateProduct = () => {
                 type="text"
                 name="name"
                 value={product.name}
-                onChange={handleChange}
+                onChange={handleInputChange}
               />
             </div>
-            <div className="col-span-2">
+            <div className="col-span-2 mb-4">
               <label className="block text-slate-700 mb-2">Price</label>
               <input
                 className="w-full px-4 py-2.5 outline-none border border-slate-300 focus:border-indigo-500 rounded-lg focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400"
@@ -147,25 +139,31 @@ const CreateProduct = () => {
                 type="number"
                 name="price"
                 value={product.price}
-                onChange={handleChange}
+                onChange={handleInputChange}
               />
             </div>
-            <div className="col-span-2">
-              <label className="block text-slate-700 mb-2">Category</label>
-              <select
-                className="w-full px-4 py-2.5 outline-none border border-slate-300 focus:border-indigo-500 rounded-lg focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400"
-                name="categoryId"
-                value={product.categoryId}
-                onChange={handleChange}
-              >
-                {categories.map((cat, i) => (
-                  <option value={cat.id} key={i}>
-                    {cat.name}
+            {categories.length > 0 && (
+              <div className="col-span-2 mb-4">
+                <label className="block text-slate-700 mb-2">Category</label>
+                <select
+                  className="w-full px-4 py-2.5 outline-none border border-slate-300 focus:border-indigo-500 rounded-lg focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400"
+                  name="categoryId"
+                  value={product.categoryId}
+                  onChange={handleInputChange}
+                >
+                  <option value="" checked>
+                    Not Classification
                   </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-span-2">
+                  {categories.map((cat, i) => (
+                    <option value={cat.id} key={i}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="col-span-2 mb-4">
               <label className="block text-slate-700 mb-2">images</label>
               <input
                 className="w-full px-4 py-2.5 outline-none border border-slate-300 focus:border-indigo-500 rounded-lg focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400"
@@ -201,7 +199,7 @@ const CreateProduct = () => {
                 rows="4"
                 value={product.description}
                 name="description"
-                onChange={handleChange}
+                onChange={handleInputChange}
               ></textarea>
             </div>
             <div className="flex items-center gap-4">

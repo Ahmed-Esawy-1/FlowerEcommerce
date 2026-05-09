@@ -25,7 +25,7 @@ public class User {
   @Column(unique = true)
   private String email;
   private String password;
-  private String imagePath;
+  private String imageUrl;
   @Enumerated(EnumType.STRING)
   private Role role;
   @CreationTimestamp
@@ -61,11 +61,11 @@ public class User {
     this.password = password;
   }
 
-  public String getImagePath() {
-    return imagePath;
+  public String getImageUrl() {
+    return imageUrl;
   }
-  public void setImagePath(String imagePath) {
-    this.imagePath = imagePath;
+  public void setImageUrl(String imageUrl) {
+    this.imageUrl = imageUrl;
   }
 
   public Role getRole() {

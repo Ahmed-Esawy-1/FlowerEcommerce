@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Link } from "react-router";
+import api from "../../api/axios";
 import DeletedModal from "./DeletedModal";
 
 import InventoryIcon from "@mui/icons-material/Inventory";
@@ -20,6 +20,7 @@ const Products = () => {
   const [openDeletedModal, setOpenDeletedModal] = useState(false);
   const [deleteProduct, setDeleteProduct] = useState(null);
   console.log(allProducts);
+
   // Pagination
   const productsPerPage = 3;
   const totalPages = Math.ceil(allProducts.length / productsPerPage);
@@ -49,7 +50,7 @@ const Products = () => {
   useEffect(() => {
     async function getProducts() {
       try {
-        const response = await axios.get("http://localhost:8080/api/products");
+        const response = await api.get("products");
         const productsData = response.data;
         setAllProducts(productsData);
       } catch (error) {
@@ -62,9 +63,7 @@ const Products = () => {
   // Delete Product
   async function handleDeleteProduct() {
     try {
-      await axios.delete(
-        `http://localhost:8080/api/products/${deleteProduct.id}`,
-      );
+      await api.delete(`products/${deleteProduct.id}`);
 
       setAllProducts((prev) => {
         const updated = prev.filter((p) => p.id !== deleteProduct.id);
@@ -222,22 +221,19 @@ const Products = () => {
                     <td className="px-8 py-4">
                       <div className="flex items-center gap-3">
                         <img
-                          alt="User Avatar"
+                          alt={`${product.title} Image`}
                           className="w-10 h-10 object-cover border border-slate-200 rounded-lg"
-                          data-alt="professional headshot of a smiling woman with dark hair in a corporate setting with neutral lighting"
-                          src={
-                            product.imagesPath?.length > 0
-                              ? `http://localhost:8080${product.imagesPath[0]}`
-                              : "https://lh3.googleusercontent.com/aida-public/AB6AXuDycsNhD7QLtcdq_eb5uwqOeFdCwjDe5B7NWUi2nNOkDAXTwvXoCBhNNOzut3q7gNuTkgpFDWqGVX6YboyGG09U_h9Q49fdQnBiI_NF0IItQInTFlwuvYhr30vmgchSrhzb3Z3EaNX4Lf6GVHNl4vImXRxifbahvQfhPnl0MKZEBBcG2jB7dfsJA8zx4A8_Jw0Y3pLxxDLxyDsLHQQKUqHXwUV42qcZ8naSsKbtEuM6g6Ud7hYoUWk4kOEJoMuCs67tbXoLarYaj5k"
-                          }
+                          src={`http://localhost:8080${product.images[0]?.url}`}
                         />
                         <div>
                           <p className="text-on-surface text-sm font-semibold">
                             {product.title}
                           </p>
-                          <p className="text-slate-400 text-xs">
-                            Last active 2m ago
-                          </p>
+                          {product.category && (
+                            <p className="text-slate-400 text-xs">
+                              {product.category.name}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </td>
