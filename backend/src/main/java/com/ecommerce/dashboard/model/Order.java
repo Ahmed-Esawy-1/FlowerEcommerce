@@ -1,5 +1,6 @@
 package com.ecommerce.dashboard.model;
 
+import java.math.BigDecimal;
 import java.security.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,6 +13,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -27,17 +30,23 @@ public class Order {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
   @ManyToOne
   @JoinColumn(name = "user_id")
   private User user;
-  private Double totalPrice;
-  private String status;
+
+  private BigDecimal totalPrice;
+
+  @Enumerated(EnumType.STRING)
+  private OrderStatus  status;
+
   private String paymentMethod;
+
   @Column(columnDefinition = "TEXT")
   private String shippingAddress;
 
   @JsonManagedReference
-  @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<OrderItem> items;
 
   @CreationTimestamp
@@ -59,17 +68,17 @@ public class Order {
     this.user = user;
   }
 
-  public Double getTotalPrice() {
+  public BigDecimal getTotalPrice() {
     return totalPrice;
   }
-  public void setTotalPrice(Double totalPrice) {
+  public void setTotalPrice(BigDecimal totalPrice) {
     this.totalPrice = totalPrice;
   }
   
-  public String getStatus() {
+  public OrderStatus getStatus() {
     return status;
   }
-  public void setStatus(String status) {
+  public void setStatus(OrderStatus status) {
     this.status = status;
   }
 

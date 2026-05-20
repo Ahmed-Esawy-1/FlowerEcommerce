@@ -1,5 +1,6 @@
 package com.ecommerce.dashboard.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,35 +26,44 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "products")
 public class Product {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-  private String title;
-  private String description;
-  private double price;
+   @Id
+   @GeneratedValue(strategy = GenerationType.IDENTITY)
+   private Long id;
+   private String title;
+   private String description;
+   private BigDecimal price;
   
-  @ManyToOne
-  @JoinColumn(name="category_id", nullable = true)
-  @JsonBackReference("category-products")
-  private Category category;
+   @ManyToOne
+   @JoinColumn(name="category_id", nullable = true, foreignKey = @ForeignKey(name = "fk_products_category"))
+   @JsonBackReference("category-products")
+   private Category category;
 
-  @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-  @JsonManagedReference("product-images")
-  private List<ProductImage> images;
+   @ManyToOne
+   @JoinColumn(name="occasion_id", nullable = true, foreignKey = @ForeignKey(name = "fk_products_occasion"))
+   @JsonBackReference("occasion-products")
+   private Occasion occasion;
 
-  @CreationTimestamp
-  private LocalDateTime createdAt;
+   @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+   @JsonManagedReference("product-images")
+   private List<ProductImage> images;
 
-  @UpdateTimestamp
-  private LocalDateTime updatedAt;
+   @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+   @JsonManagedReference("product-colors")
+   private List<ProductColor> colors;
+
+   @CreationTimestamp
+   private LocalDateTime createdAt;
+
+   @UpdateTimestamp
+   private LocalDateTime updatedAt;
 
   
-  public Long getId() {
-    return id;
-  }
-  public void setId(Long id) {
+   public Long getId() {
+   return id;
+   }
+   public void setId(Long id) {
     this.id = id;
-  }
+   }
 
   public String getTitle() {
     return title;
@@ -68,10 +79,10 @@ public class Product {
     this.description = description;
   }
 
-  public double getPrice() {
+  public BigDecimal getPrice() {
     return price;
   }
-  public void setPrice(double price) {
+  public void setPrice(BigDecimal price) {
     this.price = price;
   }
 
@@ -82,6 +93,13 @@ public class Product {
     this.category = category;
   }
 
+  public Occasion getOccasion() {
+    return occasion;
+  }
+  public void setOccasion(Occasion occasion) {
+    this.occasion = occasion;
+  }
+
   public List<ProductImage> getImages() {
     return images;
   }
@@ -89,12 +107,19 @@ public class Product {
     this.images = images;
   }
 
-  public LocalDateTime getCreatedAt() {
-    return createdAt;
-  }
-  public void setCreatedAt(LocalDateTime createdAt) {
-    this.createdAt = createdAt;
-  }
+   public LocalDateTime getCreatedAt() {
+      return createdAt;
+   }
+   public void setCreatedAt(LocalDateTime createdAt) {
+      this.createdAt = createdAt;
+   }
+
+   public List<ProductColor> getColors() { 
+      return colors; 
+   }
+   public void setColors(List<ProductColor> colors) { 
+      this.colors = colors; 
+   }
 
   public LocalDateTime getUpdatedAt() {
     return updatedAt;

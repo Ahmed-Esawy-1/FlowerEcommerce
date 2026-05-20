@@ -3,6 +3,7 @@ package com.ecommerce.dashboard.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,11 +17,11 @@ public class ProductImage {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  private String url;
+  private String imageUrl;
 
-  @JsonBackReference("product-images")
   @ManyToOne
-  @JoinColumn(name = "product_id")
+  @JoinColumn(name = "product_id", foreignKey = @ForeignKey(name = "fk_images_product"))
+  @JsonBackReference("product-images")
   private Product product;
 
   public Long getId() {
@@ -31,12 +32,12 @@ public class ProductImage {
     this.id = id;
   }
 
-  public String getUrl() {
-    return url;
+  public String getImageUrl() {
+    return imageUrl;
   }
 
-  public void setUrl(String imgPath) {
-    this.url = imgPath;
+  public void setImageUrl(String imgUrl) {
+    this.imageUrl = imgUrl;
   }
 
   public Product getProduct() {

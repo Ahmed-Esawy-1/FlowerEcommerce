@@ -2,7 +2,7 @@ package com.ecommerce.dashboard.mapper;
 
 
 
-import com.ecommerce.dashboard.dto.response.CategoryResponse;
+import com.ecommerce.dashboard.dto.response.category.CategoryResponse;
 import com.ecommerce.dashboard.model.Category;
 
 public class CategoryMapper {
@@ -14,7 +14,7 @@ public class CategoryMapper {
     response.setName(category.getName());
 
     if (category.getImageUrl() != null) {
-      response.setImageUrl("/api/upload_images/Categories/" + category.getImageUrl());
+      response.setImageUrl("/api/upload_images/categories/" + category.getImageUrl());
     } else {
       response.setImageUrl(null);
     }

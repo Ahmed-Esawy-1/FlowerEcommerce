@@ -1,163 +1,205 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useRef } from "react";
 import { Link } from "react-router";
 import api from "../../api/axios";
 
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
 
 const CreateCategory = () => {
-  const [category, setCategory] = useState({
-    name: "",
-    image: null,
-  });
-  const [errors, setErrors] = useState([]);
+   const [category, setCategory] = useState({
+      name: "",
+      image: null,
+   });
 
-  useEffect(() => {
-    console.log(category);
-  }, [category]);
+   const [error, setError] = useState("");
+   const fileInputRef = useRef(null);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setCategory({
-      ...category,
-      [name]: value,
-    });
-  };
+   const isDisabled = !category.name.trim();
 
-  // Handle Images
-  const handleFileChange = (e) => {
-    const file = Array.from(e.target.files)[0];
-    setCategory((prev) => ({
-      ...prev,
-      image: file,
-    }));
-  };
+   const handleInputChange = (e) => {
+      const { name, value } = e.target;
 
-  const removeImage = () => {
-    setCategory((prev) => ({
-      ...prev,
-      image: "",
-    }));
-  };
+      setCategory((prev) => ({
+         ...prev,
+         [name]: value,
+      }));
+   };
 
-  // Send Form To backend
-  async function handleFormSubmit(e) {
-    console.log(category);
-    e.preventDefault();
-    try {
-      const formData = new FormData();
-      formData.append("name", category.name);
-      if (category.image) {
-        formData.append("image", category.image);
+   // Image
+   const handleFileChange = (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      setCategory((prev) => ({
+         ...prev,
+         image: file,
+      }));
+   };
+
+   const removeImage = () => {
+      setCategory((prev) => ({
+         ...prev,
+         image: null,
+      }));
+
+      if (fileInputRef.current) {
+         fileInputRef.current.value = "";
+      }
+   };
+
+   // Submit
+   async function handleFormSubmit(e) {
+      e.preventDefault();
+
+      if (!category.name.trim()) {
+         setError("Category name is required");
+         return;
       }
 
-      await api.post("categories", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      try {
+         const formData = new FormData();
+         formData.append("name", category.name);
 
-      alert("Product saved ✅");
+         if (category.image) {
+            formData.append("image", category.image);
+         }
 
-      setCategory({
-        name: "",
-        image: null,
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }
+         await api.post("categories", formData, {
+            headers: {
+               "Content-Type": "multipart/form-data",
+            },
+         });
 
-  return (
-    <main className="min-h-screen ml-[280px] p-8 overflow-y-auto">
-      {/*  Breadcrumbs & Header  */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-        <div>
-          <nav className="flex items-center gap-2 mb-2 text-slate-500 uppercase tracking-wide">
-            <Link
-              to="/Categories"
-              className="text-xl font-bold hover:text-indigo-600 tracking-tighter"
-            >
-              Categories
-            </Link>
-            <ChevronRightIcon className="!text-xs" />
-            <span className="text-indigo-600 font-bold">Create New</span>
-          </nav>
-          <h2 className="text-on-surface">Create New Category</h2>
-          <p className="text-slate-500 mt-1">
-            Configure your category details and inventory settings.
-          </p>
-        </div>
-      </div>
-      {/*  Form Layout: Bento Grid Style  */}
-      <form className="space-y-6" onSubmit={handleFormSubmit}>
-        <section className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-          <div className="grid grid-cols-2 gap-lg">
-            <div className="col-span-2 mb-4">
-              <label className="block text-slate-700 mb-2">
-                Categgoty Name
-              </label>
-              <input
-                className="w-full px-4 py-2.5 outline-none border border-slate-300 focus:border-indigo-500 rounded-lg focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400"
-                placeholder="e.g. Premium Wireless Headphones"
-                type="text"
-                name="name"
-                value={category.name}
-                onChange={handleInputChange}
-              />
+         alert("Category saved ✅");
+
+         setCategory({
+            name: "",
+            image: null,
+         });
+
+         setError("");
+
+         if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+         }
+      } catch (error) {
+         setError(error?.response?.data?.message);
+      }
+   }
+
+   return (
+      <>
+         {/* Header */}
+         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+            <div>
+               <nav className="flex items-center gap-2 mb-2 text-indigo-600 hover:text-indigo-600 uppercase tracking-wide">
+                  <Link to="/categories" className="page-title">
+                     Categories
+                  </Link>
+                  <ChevronRightIcon className="!text-xs" />
+                  <span className="text-indigo-600 hover:text-indigo-600 font-bold">
+                     Create New
+                  </span>
+               </nav>
+
+               <h2 className="text-on-surface">Create New Category</h2>
+
+               <p className="page-subtitle">
+                  Configure your category details and image.
+               </p>
             </div>
-            <div className="col-span-2 mb-4">
-              <label className="block text-slate-700 mb-2">image</label>
-              <input
-                className="w-full px-4 py-2.5 outline-none border border-slate-300 focus:border-indigo-500 rounded-lg focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400"
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-              />
-              {category.image && category.image instanceof File && (
-                <div className="flex gap-3 mt-4 flex-wrap mb-4">
-                  <div className="max-h-60 aspect-[6/7] relative">
-                    <img
-                      src={URL.createObjectURL(category.image)}
-                      alt="preview"
-                      className="w-full h-full object-cover border rounded-lg"
-                    />
-                    <CloseIcon
-                      className="absolute top-2 right-2 bg-black p-2 rounded-full text-error font-black cursor-pointer"
-                      fontSize="large"
-                      onClick={() => removeImage()}
-                    />
-                  </div>
-                </div>
-              )}
+         </div>
+
+         {/* Form */}
+         <form
+            className="bg-surface-container p-6 border border-outline-variant rounded-xl shadow-sm space-y-6"
+            onSubmit={handleFormSubmit}
+         >
+            <div className="grid grid-cols-2 gap-lg">
+               {/* Name */}
+               <div className="col-span-2 mb-4">
+                  <label className="required block text-on-surface-variant mb-2">
+                     Category Name
+                  </label>
+
+                  <input
+                     type="text"
+                     name="name"
+                     value={category.name}
+                     onChange={handleInputChange}
+                     placeholder="e.g. Electronics"
+                     className="w-full pl-10 pr-stack-4 py-3 bg-surface-container-lowest outline-none border border-outline-variant focus:border-primary rounded-lg text-on-surface focus:ring-2 focus:ring-primary/20  transition-all placeholder:text-outline"
+                  />
+
+                  {error && <p className="text-error text-sm mt-1">{error}</p>}
+               </div>
+
+               {/* Image */}
+               <div className="col-span-2 mb-4">
+                  <label className="block text-on-surface-variant mb-2">
+                     Image
+                  </label>
+
+                  <input
+                     ref={fileInputRef}
+                     type="file"
+                     accept="image/*"
+                     onChange={handleFileChange}
+                     className="w-full pl-10 pr-stack-4 py-3 bg-surface-container-lowest outline-none border border-outline-variant focus:border-primary rounded-lg text-on-surface focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline"
+                  />
+
+                  {category.image && (
+                     <div className="flex gap-3 mt-4">
+                        <div className="relative max-h-60 aspect-[6/7]">
+                           <img
+                              src={URL.createObjectURL(category.image)}
+                              alt="preview"
+                              className="w-full h-full object-cover rounded-lg border border-outline-variant"
+                           />
+
+                           <CloseIcon
+                              onClick={removeImage}
+                              className="absolute top-2 right-2 bg-black text-white p-1 rounded-full cursor-pointer"
+                           />
+                        </div>
+                     </div>
+                  )}
+               </div>
+
+               {/* Actions */}
+               <div className="flex items-center gap-4">
+                  <button
+                     type="button"
+                     onClick={() => {
+                        setCategory({ name: "", image: null });
+                        setError("");
+                        if (fileInputRef.current)
+                           fileInputRef.current.value = "";
+                     }}
+                     className="px-6 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50"
+                  >
+                     Cancel
+                  </button>
+
+                  <button
+                     type="submit"
+                     disabled={isDisabled}
+                     className={`px-6 py-2.5 text-white rounded-lg flex items-center gap-2 transition-all
+                  ${
+                     isDisabled
+                        ? "bg-slate-400 cursor-not-allowed"
+                        : "bg-indigo-600 hover:bg-indigo-700"
+                  }`}
+                  >
+                     <SaveIcon className="!text-sm" />
+                     Save Category
+                  </button>
+               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() =>
-                  setCategory({
-                    name: "",
-                    image: null,
-                  })
-                }
-                className="px-6 py-2.5 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold  border border-slate-200 rounded-lg transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-md shadow-indigo-200 transition-all flex items-center gap-2"
-              >
-                <SaveIcon className="!text-sm" />
-                Save Product
-              </button>
-            </div>
-          </div>
-        </section>
-      </form>
-    </main>
-  );
+         </form>
+      </>
+   );
 };
 
 export default CreateCategory;

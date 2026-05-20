@@ -1,246 +1,123 @@
 package com.ecommerce.dashboard.service;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ecommerce.dashboard.dto.request.LoginRequest;
-import com.ecommerce.dashboard.dto.request.RegisterRequest;
-import com.ecommerce.dashboard.dto.response.UserResponse;
+import com.ecommerce.dashboard.dto.request.auth.ChangePasswordRequest;
+import com.ecommerce.dashboard.dto.request.auth.RegisterRequest;
+import com.ecommerce.dashboard.dto.request.user.UpdateProfileRequest;
+import com.ecommerce.dashboard.dto.response.user.UserResponse;
+import com.ecommerce.dashboard.exception.BadRequestException;
+import com.ecommerce.dashboard.exception.NotFoundException;
+import com.ecommerce.dashboard.exception.ResourceAlreadyExistsException;
 import com.ecommerce.dashboard.mapper.UserMapper;
 import com.ecommerce.dashboard.model.Role;
 import com.ecommerce.dashboard.model.User;
 import com.ecommerce.dashboard.repository.UserRepository;
 
-import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class UserService {
-  private final UserRepository userRepository;
-  private final PasswordEncoder encoder;
-  private final AuthenticationManager authenticationManager;
 
-  @Value("${file.upload-dir}")
-  private String uploadDir;
-
-  public UserService(UserRepository userRepository, PasswordEncoder encoder, AuthenticationManager authenticationManager) {
-    this.userRepository = userRepository;
-    this.encoder = encoder;
-    this.authenticationManager = authenticationManager;
-  }
-
-  // Get All Users
-  public List<UserResponse> getAllUsers() {
-    return userRepository.findAll()
-      .stream()
-      .map(UserMapper::mapToDto)
-      .toList();
-  }
-
-  // Get User By Id
-  public UserResponse getUserById(Long id) {
-    User existing = userRepository.findById(id)
-      .orElseThrow(() -> new RuntimeException("User Not Found"));
-
-    return UserMapper.mapToDto(existing);
-  }
-
-  // Register New User
-  public User register(User user, MultipartFile file, Authentication auth) {
-    if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-      throw new RuntimeException("Email already in use");
-  }
-
-    String currentRole = auth.getAuthorities()
-      .stream()
-      .findFirst()
-      .map(a -> a.getAuthority())
-      .orElseThrow(() -> new RuntimeException("No role found"));
-
-    Role requestedRole = user.getRole();
-
-    
-    if (currentRole.equals("ROLE_USER")) {
-        throw new RuntimeException("Not allowed to create users");
-    }
-
-    if (currentRole.equals("ROLE_ADMIN")) {
-        if (requestedRole != Role.USER) {
-          throw new RuntimeException("Admin can only create USER accounts");
-        }
-    }
-
-    if (currentRole.equals("ROLE_MANAGER")) {
-        if (requestedRole != Role.ADMIN && requestedRole != Role.USER) {
-            throw new RuntimeException("Manager can only create ADMIN or USER");
-        }
-    }
-
-    user.setPassword(encoder.encode(user.getPassword()));
-    user.setRole(requestedRole);
-
-    if (file != null && !file.isEmpty()) {
-        user.setImageUrl(uploadImage(file));
-    }
-
-    return userRepository.save(user);
-}
-
-  // Register New User from Form SHop
-  public User registerFromShop(RegisterRequest req, MultipartFile file) {
-
-    User user = new User();
-
-    user.setName(req.getName());
-    if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-      throw new RuntimeException("Email already in use");
-  }
-    user.setEmail(req.getEmail());
-    user.setPassword(encoder.encode(req.getPassword()));
-    user.setRole(Role.USER);
-
-    if (file != null && !file.isEmpty()) {
-        user.setImageUrl(uploadImage(file));
-    }
-
-    return userRepository.save(user);
-  }
+   private final UserRepository userRepository;
+   private final PasswordEncoder encoder;
+   private final FileStorageService fileStorageService;
 
 
-  // Update User
-  public User updateUser(Long id,User user, MultipartFile file) {
-    User existing = userRepository.findById(id)
-      .orElseThrow(() -> new RuntimeException("User not found"));
+   public UserService(
+      UserRepository userRepository, 
+      PasswordEncoder encoder, 
+      FileStorageService fileStorageService
+   ) {
+      this.userRepository = userRepository;
+      this.encoder = encoder;
+      this.fileStorageService = fileStorageService;
+   }
 
-    existing.setName(user.getName());
-    existing.setEmail(user.getEmail());
+   // From Form SHop
+   public UserResponse register(RegisterRequest req, MultipartFile file) {
 
-    if (user.getPassword() != null && !user.getPassword().isBlank()) {
-      existing.setPassword(encoder.encode(user.getPassword()));
-    }
-
-    if (file != null && !file.isEmpty()) {
-      // delete old image
-      if (existing.getImageUrl() != null) {
-        try {
-          Path oldPath = Paths.get(uploadDir, existing.getImageUrl());
-          Files.deleteIfExists(oldPath);
-        } catch (Exception e) {}
+      if (userRepository.findByEmail(req.getEmail()).isPresent()) {
+         throw new ResourceAlreadyExistsException("Email already Exist!");
       }
 
-      String imagePath = uploadImage(file);
-      existing.setImageUrl(imagePath);
-    }
+      User user = new User();
+      user.setUserName(req.getUserName());
+      user.setEmail(req.getEmail());
+      user.setPassword(encoder.encode(req.getPassword()));
+      user.setRole(Role.USER);
 
-    return userRepository.save(existing);
-  }
-
-  // Delete User
-  public void deleteUser(Long id) {
-    User existing = userRepository.findById(id)
-      .orElseThrow(() -> new RuntimeException("User Not Found"));
-
-    if (existing.getImageUrl() != null) {
-      try {
-          Path oldPath = Paths.get(uploadDir, existing.getImageUrl());
-          Files.deleteIfExists(oldPath);
-      } catch (Exception e) {}
-    }
-
-    userRepository.deleteById(id);
-  }
-
-
-  // Authenticate user login
-  public ResponseEntity<?> login(LoginRequest req, HttpServletRequest request) {
-    try {
-      Authentication authentication = authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(
-          req.getEmail().trim(),
-          req.getPassword().trim()
-        )
-      );
-
-      SecurityContextHolder.getContext().setAuthentication(authentication);
-
-      request.getSession(true)
-        .setAttribute("SPRING_SECURITY_CONTEXT",
-          SecurityContextHolder.getContext());
-
-      User user = userRepository
-        .findByEmail(authentication.getName())
-        .orElseThrow();
-      
-      return ResponseEntity.ok(UserMapper.mapToDto(user));
-    } catch (Exception e) {
-      return ResponseEntity.status(403)
-        .body(e.getMessage());
-    }
-
-  }
-
-  // Get authenticated user session
-  public UserResponse getAuthenticatedUser(Authentication authentication) {
-    if(authentication == null || !authentication.isAuthenticated()) {
-      throw new RuntimeException("Unauthorized");
-    }
-
-    User user = userRepository
-      .findByEmail(authentication.getName())
-      .orElseThrow(() -> new RuntimeException("User not found"));
-
-      return UserMapper.mapToDto(user);
-  }
-
-  // Check Dashboard Loginned 
-  public boolean isDashboardUser(Authentication authentication) {
-    return authentication.getAuthorities()
-      .stream()
-      .anyMatch(auth ->
-        auth.getAuthority().equals("ROLE_ADMIN") ||
-        auth.getAuthority().equals("ROLE_MANAGER")
-      );
-  }
-
-  // Log Out
-  public ResponseEntity<String> logout(HttpServletRequest request) {
-    request.getSession().invalidate();
-    SecurityContextHolder.clearContext();
-    return ResponseEntity.ok("LOGOUT_SUCCESS");
-  }
-
-  
-
-
-  // Upload Image
-  public String uploadImage(MultipartFile file) {
-    try {
-      
-      String folder = uploadDir + "/users";
-      Path uploadPath = Paths.get(folder);
-      if(!Files.exists(uploadPath)) {
-        Files.createDirectories(uploadPath);
+      if (file != null && !file.isEmpty()) {
+         user.setImageUrl(fileStorageService.uploadImage(file, "users"));
       }
 
-        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-        Files.copy(file.getInputStream(),  uploadPath.resolve(fileName));
+      User saved = userRepository.save(user);
+      return UserMapper.toResponse(saved);
+   }
 
-        return "users/" +  fileName;
-    } catch(Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
+   // Update Your Profile
+   public UserResponse updateCurrentUser(UpdateProfileRequest req, MultipartFile file, Authentication authentication) {
+
+      String email = authentication.getName();
+
+      User existing = userRepository.findByEmail(email)
+            .orElseThrow(() -> new NotFoundException("We Cant't Found Your Account"));
+
+      if (req.getEmail() != null && !req.getEmail().isBlank()) {
+
+         if (!req.getEmail().equals(existing.getEmail())
+            && userRepository.findByEmail(req.getEmail()).isPresent()) 
+         {
+            throw new ResourceAlreadyExistsException("Email already exists!");
+         }
+
+         existing.setEmail(req.getEmail());
+      }
+
+
+      if (req.getUserName() != null && !req.getUserName().isBlank()) {
+         existing.setUserName(req.getUserName());
+      }
+
+      if (file != null && !file.isEmpty()) {
+
+         if (existing.getImageUrl() != null) {
+            fileStorageService.deleteFile(existing.getImageUrl());
+         }
+
+         String imagePath = fileStorageService.uploadImage(file, "users");
+         existing.setImageUrl(imagePath);
+      }
+
+      User saved = userRepository.save(existing);
+      return UserMapper.toResponse(saved);
+   }
+
+   // Change Your Password
+   public void changePassword(ChangePasswordRequest req, Authentication authentication) {
+
+      String email = authentication.getName();
+
+      User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new NotFoundException("We Cant't Found Your Account"));
+
+      if (!encoder.matches(req.getOldPassword(), user.getPassword())) {
+         throw new BadRequestException("Old password is incorrect");
+      }
+
+      if (req.getOldPassword().equals(req.getNewPassword())) {
+         throw new BadRequestException("New password cannot be same as old password");
+      }
+
+      if(!req.getNewPassword().equals(req.getConfirmNewPassword())) {
+         throw new BadRequestException("New password must be equal to confirm new password");
+      }
+
+      user.setPassword(encoder.encode(req.getNewPassword()));
+
+      userRepository.save(user);
+   }
 
 }

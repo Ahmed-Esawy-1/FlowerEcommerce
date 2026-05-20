@@ -3,20 +3,22 @@ package com.ecommerce.dashboard.controller;
 
 import java.util.List;
 
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.ecommerce.dashboard.dto.response.ProductResponse;
-import com.ecommerce.dashboard.model.Product;
-import com.ecommerce.dashboard.repository.ProductRepository;
+import com.ecommerce.dashboard.dto.request.product.AddProductColorRequest;
+import com.ecommerce.dashboard.dto.request.product.CreateProductRequest;
+import com.ecommerce.dashboard.dto.request.product.UpdateProductRequest;
+import com.ecommerce.dashboard.dto.response.product.ProductColorImageResponse;
+import com.ecommerce.dashboard.dto.response.product.ProductResponse;
 import com.ecommerce.dashboard.service.ProductService;
+
+import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,74 +28,72 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 
 
-
 @RestController
 @RequestMapping("/products")
-@CrossOrigin(origins = "http://localhost:5173") // allow React app
 public class ProductController {
 
-  private final ProductService productService;
+   private final ProductService productService;
 
-  public ProductController(ProductService productService) {
-    this.productService = productService;
-  }
-
-
-  @Autowired
-  ProductRepository repository;
+   public ProductController(ProductService productService) {
+      this.productService = productService;
+   }
 
 
+   // Get All Products
+   @GetMapping
+   public List<ProductResponse> getProducts() {
+      return productService.getAllProducts();
+   }
 
-  @Value("${file.upload-dir}")
-    private String uploadDir;
+   // Get  Product By ID
+   @GetMapping("/{id}")
+   public ProductResponse getProductById(@PathVariable Long id) {
+      return productService.getProduct(id);
+   }
 
-  // Get All Products
-  @GetMapping
-  public List<ProductResponse> getProducts() {
-    return productService.getAllProducts();
-  }
+   // Products By Occasion Id
+   @GetMapping("/occasion/{occasionId}")
+   public List<ProductResponse> getByOccasion(@PathVariable Long occasionId) { 
+      return productService.getByOccasionId(occasionId);
+   }
 
-  // Get  Product By ID
-  @GetMapping("/{id}")
-  public ProductResponse getProductById(@PathVariable Long id) {
-    return productService.getProduct(id);
-  }
+   // Products By Occasion Name
+   @GetMapping("/occasion")
+      public List<ProductResponse> getByOccasionName(@RequestParam String name) { 
+      return productService.getByOccasionName(name);
+   }
 
-  // Create Product
-  @PostMapping(consumes = "multipart/form-data")
-  public Product createProduct(
-        @RequestParam("title") String title,
-        @RequestParam("description") String description,
-        @RequestParam("price") Double price,
-        @RequestParam(value = "categoryId", required = false) Long categoryId,
-        @RequestParam("images") List<MultipartFile> files)
-  {
-    return productService.create(title, description, price, categoryId, files);
-  }
+   // Best Seller
+   @GetMapping("/best-sellers")
+   public List<ProductResponse> getBestSellers() { 
+      return productService.getBestSellers();
+   }
+
+
+   // Create Product
+   @PostMapping(consumes = "multipart/form-data")
+   public ProductResponse createProduct(
+      @Valid @ModelAttribute CreateProductRequest request,
+      @RequestParam("images") List<MultipartFile> files)
+   {
+      return productService.create(request, files);
+   }
 
   // Update Product
-  @PutMapping(value = "/{id}", consumes = "multipart/form-data")
-  public Product updateProduct(
-    @PathVariable Long id,
-    @RequestParam("title") String title,
-    @RequestParam("description") String description,
-    @RequestParam("price") Double price,
-    @RequestParam(value = "categoryId", required = false) Long categoryId,
-    @RequestParam(value = "newImages", required = false) List<MultipartFile> newImages,
-    @RequestParam(value = "removedImagesIds", required = false) List<Long> removedImagesIds
-  ) {
-    return productService.update(
-      id, title, description, price, categoryId, newImages, removedImagesIds
-    );
-  }
+   @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+   public ProductResponse updateProduct(
+      @PathVariable Long id,
+      @Valid @ModelAttribute UpdateProductRequest request,
+      @RequestParam(value = "newImages", required = false) List<MultipartFile> newImages
+   ) {
+      return productService.update(id, request, newImages);
+   }
 
 
   // Delete Product
-  @DeleteMapping("/{id}")
-  public void deleteProduct(@PathVariable Long id) {
-    productService.delete(id);
-  }
-  
-  
-  
+   @DeleteMapping("/{id}")
+   public void deleteProduct(@PathVariable Long id) {
+      productService.deleteProduct(id);
+   }
+
 }

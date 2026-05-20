@@ -1,24 +1,24 @@
 package com.ecommerce.dashboard.mapper;
 
-import com.ecommerce.dashboard.dto.response.UserResponse;
+import com.ecommerce.dashboard.dto.response.user.UserResponse;
 import com.ecommerce.dashboard.model.User;
 
 public class UserMapper {
 
-    public static UserResponse mapToDto(User user) {
+   public static UserResponse toResponse(User user) {
 
       UserResponse response = new UserResponse();
 
       response.setId(user.getId());
-      response.setName(user.getName());
+      response.setUserName(user.getUserName());
       response.setEmail(user.getEmail());
+
       if(user.getImageUrl() != null) {
-        response.setImageUrl("/api/upload_images/users/" + user.getImageUrl());
+         response.setImageUrl("/api/upload_images/users/" + user.getImageUrl());
       } else {
-        response.setImageUrl(null);
+         response.setImageUrl(null);
       }
-      response.setRole(user.getRole());
 
       return response;
-  }
+   }
 }

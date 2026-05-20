@@ -1,316 +1,407 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router";
-import api from "../../api/axios";
-import DeletedModal from "./DeletedModal";
 
-import InventoryIcon from "@mui/icons-material/Inventory";
-import WarningIcon from "@mui/icons-material/Warning";
-import PaymentsIcon from "@mui/icons-material/Payments";
+import { BASE_URL } from "../../api/config";
+import api from "../../api/axios";
+
+import DeletedModal from "./DeletedModal";
+import Loading from "../../components/Loading";
+
 import CategoryIcon from "@mui/icons-material/Category";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+
+const CATEGORIES_PER_PAGE = 6;
+const MAX_VISIBLE_PAGES = 4;
 
 const Categories = () => {
-  const [allCategories, setAllCategories] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [openDeletedModal, setOpenDeletedModal] = useState(false);
-  const [deleteCategory, setDeleteCategory] = useState(null);
-  console.log(allCategories);
+   const [categories, setCategories] = useState([]);
+   const [currentPage, setCurrentPage] = useState(1);
+   const [loading, setLoading] = useState(false);
 
-  // Pagination
-  const CategoriesPerPage = 3;
-  const totalPages = Math.ceil(allCategories.length / CategoriesPerPage);
-  const maxVisiblePages = 4;
+   const [searchInput, setSearchInput] = useState("");
+   const [searchQuery, setSearchQuery] = useState("");
 
-  const indexOfLastCategory = currentPage * CategoriesPerPage;
-  const indexOfFirstCategory = indexOfLastCategory - CategoriesPerPage;
+   const [openDeletedModal, setOpenDeletedModal] = useState(false);
+   const [deleteCategory, setDeleteCategory] = useState(null);
 
-  const currentCategories = allCategories.slice(
-    indexOfFirstCategory,
-    indexOfLastCategory,
-  );
+   // Fetch Categories
+   useEffect(() => {
+      async function getCategories() {
+         try {
+            setLoading(true);
 
-  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-  let endPage = startPage + maxVisiblePages - 1;
+            const { data } = await api.get("categories");
 
-  if (endPage > totalPages) {
-    endPage = totalPages;
-    startPage = Math.max(1, endPage - maxVisiblePages + 1);
-  }
-  const visiblePages = Array.from(
-    { length: endPage - startPage + 1 },
-    (_, i) => startPage + i,
-  );
-
-  // All Products
-  useEffect(() => {
-    async function getCategoriess() {
-      try {
-        const response = await api.get("categories");
-        const categoriessData = response.data;
-        setAllCategories(categoriessData);
-      } catch (error) {
-        console.log(error);
+            setCategories(data);
+         } catch (error) {
+            console.log(error);
+         } finally {
+            setLoading(false);
+         }
       }
-    }
-    getCategoriess();
-  }, []);
 
-  // Delete Product
-  async function handleDeleteCategory() {
-    try {
-      await api.delete(`categories/${deleteCategory.id}`);
+      getCategories();
+   }, []);
 
-      setAllCategories((prev) => {
-        const updated = prev.filter((p) => p.id !== deleteCategory.id);
+   // Reset Page When Searching
+   useEffect(() => {
+      setCurrentPage(1);
+   }, [searchQuery]);
 
-        const newTotalPages = Math.ceil(updated.length / CategoriesPerPage);
-
-        if (currentPage > newTotalPages) {
-          setCurrentPage(newTotalPages || 1);
-        }
-
-        return updated;
+   // Scroll on Pagination
+   useEffect(() => {
+      window.scrollTo({
+         top: 0,
+         behavior: "smooth",
       });
-      setDeleteCategory({});
+   }, [currentPage]);
 
-      setOpenDeletedModal(false);
-    } catch (error) {
-      console.log(error);
-    }
-  }
+   // Filter Categories
+   const filteredCategories = useMemo(() => {
+      if (!searchQuery.trim()) return categories;
 
-  return (
-    <main className="min-h-screen ml-[280px] p-8 bg-surface">
-      {/* header */}
-      <section className="flex justify-between items-end mb-8">
-        <div>
-          <h2 className="text-on-background text-lg font-bold">
-            Categories Inventory
-          </h2>
-          <p className="text-secondary text-sm">
-            Manage your enterprise catalog, track stock levels, and update
-            pricing.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link
-            to="/categories/create-category"
-            className="bg-primary px-4 py-2 text-white rounded-lg hover:opacity-90 transition-all"
-          >
-            Create Category
-          </Link>
-        </div>
-      </section>
-      {/* Cards*/}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 border border-slate-200 rounded-xl shadow-sm">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-indigo-50 rounded-lg">
-              <InventoryIcon className="text-indigo-600" />
+      return categories.filter((category) =>
+         category.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+   }, [categories, searchQuery]);
+
+   // Pagination
+   const totalPages = Math.max(
+      1,
+      Math.ceil(filteredCategories.length / CATEGORIES_PER_PAGE),
+   );
+
+   const currentCategories = useMemo(() => {
+      const startIndex = (currentPage - 1) * CATEGORIES_PER_PAGE;
+
+      return filteredCategories.slice(
+         startIndex,
+         startIndex + CATEGORIES_PER_PAGE,
+      );
+   }, [filteredCategories, currentPage]);
+
+   // Visible Pages
+   const visiblePages = useMemo(() => {
+      let startPage = Math.max(
+         1,
+         currentPage - Math.floor(MAX_VISIBLE_PAGES / 2),
+      );
+
+      let endPage = startPage + MAX_VISIBLE_PAGES - 1;
+
+      if (endPage > totalPages) {
+         endPage = totalPages;
+
+         startPage = Math.max(1, endPage - MAX_VISIBLE_PAGES + 1);
+      }
+
+      return Array.from(
+         {
+            length: endPage - startPage + 1,
+         },
+         (_, i) => startPage + i,
+      );
+   }, [currentPage, totalPages]);
+
+   // Display Range
+   const startIndex =
+      filteredCategories.length === 0
+         ? 0
+         : (currentPage - 1) * CATEGORIES_PER_PAGE + 1;
+
+   const endIndex = Math.min(
+      currentPage * CATEGORIES_PER_PAGE,
+      filteredCategories.length,
+   );
+
+   // Delete Category
+   async function handleDeleteCategory() {
+      if (!deleteCategory) return;
+
+      try {
+         await api.delete(`categories/${deleteCategory.id}`);
+
+         setCategories((prev) => {
+            const updated = prev.filter(
+               (category) => category.id !== deleteCategory.id,
+            );
+
+            const newFilteredLength = searchQuery.trim()
+               ? updated.filter((category) =>
+                    category.name
+                       .toLowerCase()
+                       .includes(searchQuery.toLowerCase()),
+                 ).length
+               : updated.length;
+
+            const newTotalPages = Math.max(
+               1,
+               Math.ceil(newFilteredLength / CATEGORIES_PER_PAGE),
+            );
+
+            if (currentPage > newTotalPages) {
+               setCurrentPage(newTotalPages);
+            }
+
+            return updated;
+         });
+
+         setDeleteCategory(null);
+         setOpenDeletedModal(false);
+      } catch (error) {
+         console.log(error);
+      }
+   }
+
+   return (
+      <>
+         {/* Header */}
+         <section className="flex justify-between items-end">
+            <div>
+               <h2 className="page-title">Categories Inventory</h2>
+
+               <p className="page-subtitle">
+                  Manage your categories and update data.
+               </p>
             </div>
-            <span className="text-emerald-600 text-xs font-semibold bg-emerald-50 px-2 py-1 rounded-full">
-              +12%
-            </span>
-          </div>
-          <p className="text-secondary uppercase">Total Category</p>
-          <p className="text-on-surface mt-1">1,284</p>
-        </div>
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-orange-50 rounded-lg">
-              <WarningIcon className="text-orange-600" />
+
+            <Link
+               to="/categories/create-category"
+               className="px-4 py-2 rounded-lg bg-primary text-on-primary-fixed hover:opacity-90 transition-all"
+            >
+               Create Category
+            </Link>
+         </section>
+
+         {/* Stats */}
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
+            {/* Total */}
+            <div className="flex flex-col justify-between bg-surface-container border border-surface-variant p-8 rounded-xl h-40">
+               <div className="flex justify-between items-start">
+                  <span className="text-on-surface-variant uppercase tracking-widest">
+                     Total Categories
+                  </span>
+
+                  <div className="bg-primary-container/20 p-2 rounded-lg text-primary">
+                     <CategoryIcon />
+                  </div>
+               </div>
+
+               <div>
+                  <div className="text-on-surface text-3xl font-bold">
+                     {categories.length}
+                  </div>
+
+                  <div className="text-primary mt-1">+2 added this month</div>
+               </div>
             </div>
-            <span className="text-orange-600 text-xs font-semibold bg-orange-50 px-2 py-1 rounded-full">
-              8 items
-            </span>
-          </div>
-          <p className="text-secondary uppercase">Low Stock</p>
-          <p className="text-on-surface mt-1">42</p>
-        </div>
-        <div className="bg-white p-6 border border-slate-200 rounded-xl shadow-sm">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-emerald-50 rounded-lg">
-              <PaymentsIcon className="text-emerald-600" />
+
+            {/* Active */}
+            <div className="flex flex-col justify-between bg-surface-container border border-surface-variant p-8 rounded-xl h-40">
+               <div className="flex justify-between items-start">
+                  <span className="text-on-surface-variant uppercase tracking-widest">
+                     Active Items
+                  </span>
+
+                  <div className="bg-secondary-container p-2 rounded-lg text-secondary">
+                     <InventoryIcon />
+                  </div>
+               </div>
+
+               <div>
+                  <div className="text-on-surface text-3xl font-bold">
+                     1,482
+                  </div>
+
+                  <div className="text-on-surface-variant mt-1">
+                     Across all departments
+                  </div>
+               </div>
             </div>
-          </div>
-          <p className="text-secondary uppercase">Inventory Value</p>
-          <p className="text-on-surface mt-1">$452.9k</p>
-        </div>
-        <div className="bg-white p-6 border border-slate-200 rounded-xl shadow-sm">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-purple-50 rounded-lg">
-              <CategoryIcon className="text-purple-600" />
+
+            {/* Growth */}
+            <div className="flex flex-col justify-between bg-surface-container border border-surface-variant p-8 rounded-xl h-40">
+               <div className="flex justify-between items-start">
+                  <span className="text-on-surface-variant uppercase tracking-widest">
+                     Growth Rate
+                  </span>
+
+                  <div className="bg-tertiary-container/20 p-2 rounded-lg text-tertiary">
+                     <TrendingUpIcon />
+                  </div>
+               </div>
+
+               <div>
+                  <div className="text-on-surface text-3xl font-bold">
+                     12.4%
+                  </div>
+
+                  <div className="mt-1 text-on-surface-variant">
+                     Steady increase in SKU volume
+                  </div>
+               </div>
             </div>
-          </div>
-          <p className="text-secondary uppercase">Active Categories</p>
-          <p className="text-on-surface mt-1">24</p>
-        </div>
-      </div>
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        {/* Filters */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 p-6">
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
-              <FilterListIcon className="!text-sm" />
-              All Categories
-              <KeyboardArrowDownIcon className="!text-xs" />
-            </button>
-            <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all">
-              Status: Active
-              <KeyboardArrowDownIcon className="!text-xs" />
-            </button>
-          </div>
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-slate-500 mr-2">
-              Displaying 1-10 of 1,284
-            </p>
-            <div className="flex border border-slate-200 rounded-lg overflow-hidden">
-              <button className="p-2 text-slate-400 border-r border-slate-200 hover:bg-slate-50">
-                <ChevronLeftIcon className="!text-sm" />
-              </button>
-              <button className="p-2 text-slate-400 hover:bg-slate-50">
-                <ChevronRightIcon className="!text-sm" />
-              </button>
-            </div>
-          </div>
-        </div>
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-6 py-4">
-                  <input
-                    className="text-indigo-600 border-slate-300  rounded focus:ring-indigo-500"
-                    type="checkbox"
-                  />
-                </th>
-                <th className="px-6 py-4 text-slate-500 uppercase tracking-wider">
-                  id
-                </th>
-                <th className="px-6 py-4 text-slate-500 uppercase tracking-wider">
-                  Category Name
-                </th>
-                <th className="px-6 py-4 text-slate-500 uppercase tracking-wider">
-                  Created at
-                </th>
-                <th className="px-6 py-4 text-slate-500 uppercase tracking-wider text-right">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {/* Products */}
-              {currentCategories &&
-                currentCategories.map((category) => (
-                  <tr
-                    className="hover:bg-slate-50 transition-colors"
-                    key={category.id}
+         </div>
+
+         {/* Loading */}
+         {loading ? (
+            <Loading />
+         ) : filteredCategories.length === 0 ? (
+            /* Empty State */
+            <div className="flex flex-col items-center py-20 gap-2 text-on-surface-variant">
+               <CategoryIcon fontSize="large" />
+
+               <p>
+                  No Categories found
+                  {searchQuery ? ` for "${searchQuery.toLowerCase()}"` : ""}.
+               </p>
+
+               {searchQuery && (
+                  <button
+                     onClick={() => {
+                        setSearchQuery("");
+                        setSearchInput("");
+                        setCurrentPage(1);
+                     }}
+                     className="text-primary underline text-sm"
                   >
-                    <td className="px-6 py-4">
-                      <input
-                        className="text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
-                        type="checkbox"
-                      />
-                    </td>
-                    <td className="px-6 py-4">{category.id}</td>
-                    <td className="px-8 py-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          alt={`${category.title} Image`}
-                          className="w-10 h-10 object-cover border border-slate-200 rounded-lg"
-                          src={`http://localhost:8080${category.imageUrl}`}
+                     Clear filter
+                  </button>
+               )}
+            </div>
+         ) : (
+            <>
+               {/* Filter Bar */}
+               <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+                  <div className="flex gap-2 w-full md:max-w-md">
+                     <div className="relative flex-1">
+                        <FilterAltIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant !text-sm" />
+
+                        <input
+                           type="text"
+                           placeholder="Filter by name..."
+                           value={searchInput}
+                           onChange={(e) => setSearchInput(e.target.value)}
+                           onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                 setSearchQuery(searchInput);
+                              }
+                           }}
+                           className="w-full bg-surface-container-lowest outline-none border border-surface-variant focus:border-primary rounded-xl py-2 pl-10 pr-4 focus:ring-1 focus:ring-primary transition-all placeholder:text-on-surface-variant/50"
                         />
-                        <div>
-                          <p className="text-on-surface text-sm font-semibold">
-                            {category.name}
-                          </p>
+                     </div>
+
+                     <button
+                        disabled={searchInput === ""}
+                        onClick={() => setSearchQuery(searchInput)}
+                        className={`px-5 py-2 rounded-xl transition-all ${
+                           searchInput === ""
+                              ? "bg-gray-400 cursor-not-allowed"
+                              : "bg-primary text-on-primary hover:opacity-90"
+                        }`}
+                     >
+                        Search
+                     </button>
+                  </div>
+
+                  <div className="text-body-sm text-on-surface-variant">
+                     Showing{" "}
+                     <span className="text-on-surface font-semibold">
+                        {startIndex}–{endIndex}
+                     </span>{" "}
+                     of{" "}
+                     <span className="text-on-surface font-semibold">
+                        {filteredCategories.length}
+                     </span>{" "}
+                     {searchQuery ? "results" : "categories"}
+                  </div>
+               </div>
+
+               {/* Cards */}
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {currentCategories.map((category) => (
+                     <CollectionCard
+                        data={category}
+                        fallbackIcon={CategoryIcon}
+                        key={category.id}
+                     />
+                  ))}
+               </div>
+
+               {/* Pagination */}
+               {totalPages > 1 && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-8 border-t border-surface-variant">
+                     <div className="flex items-center gap-2">
+                        {/* Previous */}
+                        <button
+                           onClick={() =>
+                              setCurrentPage((p) => Math.max(1, p - 1))
+                           }
+                           disabled={currentPage === 1}
+                           className="flex items-center gap-1 px-4 py-2 bg-surface-container hover:bg-surface-variant border border-surface-variant rounded-lg text-on-surface-variant hover:text-on-surface transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                           <ChevronLeftIcon />
+                           <span>Previous</span>
+                        </button>
+
+                        {/* Pages */}
+                        <div className="flex items-center gap-1">
+                           {visiblePages.map((page) => (
+                              <button
+                                 key={page}
+                                 onClick={() => setCurrentPage(page)}
+                                 className={`w-10 h-10 flex items-center justify-center rounded-lg font-bold transition-colors ${
+                                    page === currentPage
+                                       ? "bg-primary text-on-primary"
+                                       : "bg-surface-container hover:bg-surface-variant text-on-surface-variant hover:text-on-surface"
+                                 }`}
+                              >
+                                 {page}
+                              </button>
+                           ))}
                         </div>
-                      </div>
-                    </td>
 
-                    <td className="px-6 py-4 text-slate-900 text-sm font-semibold">
-                      {category.createdAt}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        to={`/categories/update-category/${category.id}`}
-                        className="text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer"
-                      >
-                        <EditIcon />
-                      </Link>
-                      <button
-                        className="ml-2 text-slate-400 hover:text-error transition-colors cursor-pointer"
-                        onClick={() => {
-                          setDeleteCategory(category);
-                          setOpenDeletedModal(true);
-                        }}
-                      >
-                        <DeleteIcon />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-        {/* <!-- Pagination Footer --> */}
+                        {/* Next */}
+                        <button
+                           onClick={() =>
+                              setCurrentPage((p) => Math.min(totalPages, p + 1))
+                           }
+                           disabled={currentPage === totalPages}
+                           className="flex items-center gap-1 px-4 py-2 bg-surface-container hover:bg-surface-variant border border-surface-variant rounded-lg text-on-surface-variant hover:text-on-surface transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                           <span>Next</span>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-          <p className="text-sm text-slate-500">Showing page 1 of 129</p>
-          <div className="flex items-center gap-1">
-            {startPage > 1 && (
-              <>
-                <button
-                  onClick={() => setCurrentPage(1)}
-                  className="px-3 py-1 text-slate-600 text-sm font-medium border border-slate-200 rounded hover:bg-slate-50 transition-colors"
-                >
-                  1
-                </button>
-                {startPage > 2 && <span>...</span>}
-              </>
-            )}
+                           <ChevronRightIcon />
+                        </button>
+                     </div>
 
-            {visiblePages.map((page, i) => (
-              <button
-                key={i}
-                className={`px-3 py-1 text-sm font-medium border rounded ${currentPage == page ? "bg-primary text-white" : "text-slate-600 hover:bg-slate-50 border-slate-200 transition-colors"}`}
-                onClick={() => setCurrentPage(page)}
-              >
-                {page}
-              </button>
-            ))}
+                     <div className="text-on-surface-variant">
+                        Page {currentPage} of {totalPages}
+                     </div>
+                  </div>
+               )}
+            </>
+         )}
 
-            {endPage < totalPages && (
-              <>
-                {endPage < totalPages - 1 && <span>...</span>}
-                <button
-                  onClick={() => setCurrentPage(totalPages)}
-                  className="px-3 py-1 text-slate-600 text-sm font-medium border border-slate-200 rounded hover:bg-slate-50 transition-colors"
-                >
-                  {totalPages}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-      {/* Modal */}
-      {openDeletedModal && deleteCategory && (
-        <DeletedModal
-          isOpen={openDeletedModal}
-          productName={deleteCategory.title}
-          onClose={() => setOpenDeletedModal(false)}
-          onConfirm={handleDeleteCategory}
-        />
-      )}
-    </main>
-  );
+         {/* Delete Modal */}
+         {openDeletedModal && deleteCategory && (
+            <DeletedModal
+               isOpen={openDeletedModal}
+               productName={deleteCategory.name}
+               onClose={() => {
+                  setOpenDeletedModal(false);
+
+                  setDeleteCategory(null);
+               }}
+               onConfirm={handleDeleteCategory}
+            />
+         )}
+      </>
+   );
 };
 
 export default Categories;

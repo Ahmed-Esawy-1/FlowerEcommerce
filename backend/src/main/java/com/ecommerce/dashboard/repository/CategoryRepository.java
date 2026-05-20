@@ -8,4 +8,5 @@ import com.ecommerce.dashboard.model.Category;
 
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
+  public Boolean existsByName(String name);
 }

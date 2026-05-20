@@ -1,5 +1,7 @@
 package com.ecommerce.dashboard.model;
 
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Entity;
@@ -27,7 +29,7 @@ public class OrderItem {
   private Product product;
 
   private Integer quantity;
-  private Double price;
+  private BigDecimal price;
 
   public Long getId() {
     return id;
@@ -57,10 +59,10 @@ public class OrderItem {
     this.quantity = quantity;
   }
 
-  public Double getPrice() {
+  public BigDecimal getPrice() {
     return price;
   }
-  public void setPrice(Double price) {
+  public void setPrice(BigDecimal price) {
     this.price = price;
   }
   
