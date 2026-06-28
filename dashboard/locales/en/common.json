@@ -1,0 +1,17 @@
+{
+   "sidebar": {
+      "title": "Flow Flowers",
+      "subTitle": "Flow Dashboard",
+      "home": "Home",
+      "orders": "Orders",
+      "products": "Products",
+      "occasions": "Occasions",
+      "categories": "Categories",
+      "colors": "Colors",
+      "sections": "Sections",
+      "users": "Users"
+   },
+   
+   "products": "Products",
+   "orders": "Orders"
+}

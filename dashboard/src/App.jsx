@@ -9,19 +9,21 @@ import CreateProduct from "./pages/products/CreateProduct";
 import UpdateProduct from "./pages/products/UpdateProduct";
 
 import Occasions from "./pages/occasions/Occasions";
-import CreateOccasion from "./pages/occasions/CreateOccasion";
-import UpdateOccasion from "./pages/occasions/UpdateOccasion";
 
 import Categories from "./pages/categories/Categories";
-import CreateCategory from "./pages/categories/CreateCategory";
-import UpdateCategory from "./pages/categories/UpdateCategory";
+
+import Colors from "./pages/colors/Colors";
 
 import Orders from "./pages/orders/Orders";
 import UpdateOrder from "./pages/orders/UpdateOrder";
 
+import Sections from "./pages/sections/Sections";
+import CreateSection from "./pages/sections/CreateSection";
+import EditSection from "./pages/sections/EditSection";
+
 import Users from "./pages/Users/Users";
-import SectionManager from "./pages/sections/SectionManager";
-import Colors from "./pages/colors/Colors";
+
+import TrashPage from "./pages/TrashPage";
 
 function App() {
    return (
@@ -40,23 +42,8 @@ function App() {
                />
             </Route>
 
-            <Route path="/occasions">
-               <Route index element={<Occasions />} />
-               <Route path="create-occasion" element={<CreateOccasion />} />
-               <Route
-                  path="update-occasion/:occasionId"
-                  element={<UpdateOccasion />}
-               />
-            </Route>
-
-            <Route path="/categories">
-               <Route index element={<Categories />} />
-               <Route path="create-category" element={<CreateCategory />} />
-               <Route
-                  path="update-category/:categoryId"
-                  element={<UpdateCategory />}
-               />
-            </Route>
+            <Route path="/occasions" element={<Occasions />} />
+            <Route path="/categories" element={<Categories />} />
 
             <Route path="/orders">
                <Route index element={<Orders />} />
@@ -65,17 +52,59 @@ function App() {
 
             <Route path="/users">
                <Route index element={<Users />} />
-               {/* <Route path=":userId" element={<UserDetails />} /> */}
             </Route>
 
             <Route path="/sections">
-               <Route index element={<SectionManager />} />
+               <Route index element={<Sections />} />
+               <Route path="create" element={<CreateSection />} />
+               <Route path="edit/:sectionId" element={<EditSection />} />
             </Route>
 
             <Route path="/colors">
                <Route index element={<Colors />} />
             </Route>
+
+            {/* Trash */}
+            <Route
+               path="/products/trash"
+               element={
+                  <TrashPage
+                     title="Products Trash"
+                     endpoint="/admin/products/trash"
+                     restoreEndpoint="/admin/products"
+                     deleteEndpoint="/admin/products"
+                     type="product"
+                  />
+               }
+            />
+
+            <Route
+               path="/categories/trash"
+               element={
+                  <TrashPage
+                     title="Categories Trash"
+                     endpoint="/categories/trash"
+                     restoreEndpoint="/categories"
+                     deleteEndpoint="/categories"
+                     type="category"
+                  />
+               }
+            />
+
+            <Route
+               path="/occasions/trash"
+               element={
+                  <TrashPage
+                     title="Occasions Trash"
+                     endpoint="/occasions/trash"
+                     restoreEndpoint="/occasions"
+                     deleteEndpoint="/occasions"
+                     type="occasion"
+                  />
+               }
+            />
          </Route>
+
          {/* 
       <Route path="/not-found" element={<NotFound />} />
       <Route path="*" element={<NotFound />} /> */}

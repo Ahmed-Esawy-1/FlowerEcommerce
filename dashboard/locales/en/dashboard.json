@@ -1,0 +1,35 @@
+{
+   "title": "Dashboard Overview",
+   "subTitle": "Monitor key performance indicators and operational metrics.",
+   "dateRange": "Last 30 Days",
+   "exportReport": "Export Report",
+
+   "orders": {
+      "title": "Recent Orders",
+      "subTitle": "Latest customer orders",
+      "viewAll": "View All Orders",
+      "order": "Order",
+      "customer": "Customer",
+      "currency": "EGP",
+      "status": {
+         "pending": "Pending",
+         "processing": "Processing",
+         "completed": "Completed",
+         "cancelled": "Cancelled"
+      }
+   },
+
+   "cards": {
+      "products": "Total Products",
+      "orders": "Total Orders",
+      "categories": "Total Categories",
+      "occasions": "Total Occasions"
+   },
+
+   "topProducts": {
+      "title": "Top Products",
+      "subTitle": "Best-selling products",
+      "orderCount": "Order Count",
+      "ordersTooltip": "{{count}} orders"
+   }
+}

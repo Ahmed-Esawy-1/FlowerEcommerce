@@ -1,0 +1,18 @@
+{
+   "sidebar": {
+      "title": "فلو",
+      "subTitle": "لوحة التحكم",
+      "home": "الرئيسة",
+      "orders": "الطلبات",
+      "products": "المنتجات",
+      "occasions": "المناسبات",
+      "categories": "التصنيفات",
+      "colors": "الألوان",
+      "sections": "الأقسام",
+      "users": "المستخدمين"
+   },
+   
+
+   "products": "Products",
+   "orders": "Orders"
+}

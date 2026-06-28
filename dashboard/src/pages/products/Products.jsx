@@ -2,20 +2,16 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router";
 import api from "../../api/axios";
 import { BASE_URL } from "../../api/config";
-
-import DeletedModal from "./DeletedModal";
+import { toast } from "sonner";
 
 import InventoryIcon from "@mui/icons-material/Inventory";
-import WarningIcon from "@mui/icons-material/Warning";
-import PaymentsIcon from "@mui/icons-material/Payments";
-import CategoryIcon from "@mui/icons-material/Category";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import DownloadIcon from "@mui/icons-material/Download";
 import PrintIcon from "@mui/icons-material/Print";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import DeletedModal from "../../components/DeleteModal";
+import Pagination from "../../components/Pagination";
 
 const TABLE_HEADER = [
    "Product Name",
@@ -25,7 +21,7 @@ const TABLE_HEADER = [
    "Actions",
 ];
 
-const PRODUCTS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 10;
 const MAX_VISIBLE_PAGES = 4;
 
 const Products = () => {
@@ -34,15 +30,21 @@ const Products = () => {
    const [loading, setLoading] = useState(false);
    const [searchQuery, setSearchQuery] = useState("");
 
+   // Single Delete
    const [openDeletedModal, setOpenDeletedModal] = useState(false);
    const [deleteProduct, setDeleteProduct] = useState(null);
+
+   // Bulk Select
+   const [selectedIds, setSelectedIds] = useState(new Set());
+   const [openBulkDeleteModal, setOpenBulkDeleteModal] = useState(false);
+   const [bulkDeleting, setBulkDeleting] = useState(false);
 
    // Fetch Products
    useEffect(() => {
       async function getProducts() {
          try {
             setLoading(true);
-            const { data } = await api.get("products");
+            const { data } = await api.get("admin/products");
             setAllProducts(data);
          } catch (error) {
             console.log(error);
@@ -53,12 +55,12 @@ const Products = () => {
       getProducts();
    }, []);
 
-   // Reset to page 1 when search changes
+   // Reset to Page 1 When Search Changes
    useEffect(() => {
       setCurrentPage(1);
    }, [searchQuery]);
 
-   // Filter products by search query
+   // Filter Products by Search Query
    const filteredProducts = useMemo(() => {
       if (!searchQuery.trim()) return allProducts;
       return allProducts.filter((p) =>
@@ -66,49 +68,63 @@ const Products = () => {
       );
    }, [allProducts, searchQuery]);
 
-   // Pagination
-   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
-
    const currentProducts = useMemo(() => {
-      const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
-      const endIndex = startIndex + PRODUCTS_PER_PAGE;
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
       return filteredProducts.slice(startIndex, endIndex);
    }, [filteredProducts, currentPage]);
 
-   const visiblePages = useMemo(() => {
-      let startPage = Math.max(
-         1,
-         currentPage - Math.floor(MAX_VISIBLE_PAGES / 2),
-      );
-      let endPage = startPage + MAX_VISIBLE_PAGES - 1;
-
-      if (endPage > totalPages) {
-         endPage = totalPages;
-         startPage = Math.max(1, endPage - MAX_VISIBLE_PAGES + 1);
-      }
-
-      return Array.from(
-         { length: endPage - startPage + 1 },
-         (_, i) => startPage + i,
-      );
-   }, [currentPage, totalPages]);
-
-   // Display range
+   // Display Range
    const startIndex =
       filteredProducts.length === 0
          ? 0
-         : (currentPage - 1) * PRODUCTS_PER_PAGE + 1;
+         : (currentPage - 1) * ITEMS_PER_PAGE + 1;
    const endIndex = Math.min(
-      currentPage * PRODUCTS_PER_PAGE,
+      currentPage * ITEMS_PER_PAGE,
       filteredProducts.length,
    );
 
-   // Delete Product
+   // Clear Selection when (page | search) Change
+   useEffect(() => {
+      setSelectedIds(new Set());
+   }, [currentPage, searchQuery]);
+
+   // --- Selection Helpers -----------------------------------------------------------
+   const allOnPageSelected =
+      currentProducts.length > 0 &&
+      currentProducts.every((p) => selectedIds.has(p.id));
+   const someOnPageSelected =
+      currentProducts.some((p) => selectedIds.has(p.id)) && !allOnPageSelected;
+
+   const toggleSelectAllOnPage = () => {
+      setSelectedIds((prev) => {
+         const next = new Set(prev);
+         if (allOnPageSelected) {
+            currentProducts.forEach((p) => next.delete(p.id));
+         } else {
+            currentProducts.forEach((p) => next.add(p.id));
+         }
+         return next;
+      });
+   };
+
+   const toggleSelectOne = (id) => {
+      setSelectedIds((prev) => {
+         const next = new Set(prev);
+         if (next.has(id)) next.delete(id);
+         else next.add(id);
+         return next;
+      });
+   };
+
+   const clearSelection = () => setSelectedIds(new Set());
+
+   // Delete Product (Single)
    async function handleDeleteProduct() {
       if (!deleteProduct) return;
 
       try {
-         await api.delete(`products/${deleteProduct.id}`);
+         await api.delete(`admin/products/${deleteProduct.id}`);
 
          setAllProducts((prev) => {
             const updated = prev.filter((p) => p.id !== deleteProduct.id);
@@ -119,9 +135,7 @@ const Products = () => {
                  ).length
                : updated.length;
 
-            const newTotalPages = Math.ceil(
-               newFilteredLength / PRODUCTS_PER_PAGE,
-            );
+            const newTotalPages = Math.ceil(newFilteredLength / ITEMS_PER_PAGE);
             if (currentPage > newTotalPages) {
                setCurrentPage(newTotalPages || 1);
             }
@@ -129,10 +143,57 @@ const Products = () => {
             return updated;
          });
 
+         setSelectedIds((prev) => {
+            const next = new Set(prev);
+            next.delete(deleteProduct.id);
+            return next;
+         });
+
+         toast.success(`${deleteProduct.title} is sent to trash successfully`);
+      } catch (error) {
+         toast.error(`${deleteProduct.title} is failed to sent to trash`);
+      } finally {
          setDeleteProduct(null);
          setOpenDeletedModal(false);
+      }
+   }
+
+   // Delete Products (Bulk)
+   async function handleBulkDelete() {
+      const ids = Array.from(selectedIds);
+      console.log("ids => ", ids);
+      if (ids.length === 0) return;
+
+      setBulkDeleting(true);
+      try {
+         await api.delete("admin/products/bulk", { data: ids });
+
+         setAllProducts((prev) => {
+            const updated = prev.filter((p) => !selectedIds.has(p.id));
+
+            const newFilteredLength = searchQuery.trim()
+               ? updated.filter((p) =>
+                    p.title.toLowerCase().includes(searchQuery.toLowerCase()),
+                 ).length
+               : updated.length;
+
+            const newTotalPages = Math.ceil(newFilteredLength / ITEMS_PER_PAGE);
+            if (currentPage > newTotalPages) {
+               setCurrentPage(newTotalPages || 1);
+            }
+
+            return updated;
+         });
+
+         toast.success(
+            `${ids.length} product${ids.length > 1 ? "s" : ""} sent to trash`,
+         );
+         clearSelection();
       } catch (error) {
-         console.log(error);
+         toast.error("Failed to delete selected products");
+      } finally {
+         setBulkDeleting(false);
+         setOpenBulkDeleteModal(false);
       }
    }
 
@@ -149,6 +210,13 @@ const Products = () => {
             </div>
             <div className="flex gap-2">
                <Link
+                  to="/products/trash"
+                  className="px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-high transition-all"
+               >
+                  Trash
+               </Link>
+
+               <Link
                   to="/products/create-product"
                   className="px-4 py-2 bg-primary text-on-primary-fixed rounded-lg hover:opacity-90 transition-all"
                >
@@ -157,63 +225,8 @@ const Products = () => {
             </div>
          </section>
 
-         {/* Stats Cards */}
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-surface-container border border-surface-variant p-8 rounded-xl shadow-sm h-42">
-               <div className="flex justify-between items-start mb-4">
-                  <div className="p-2 bg-indigo-50 rounded-lg">
-                     <InventoryIcon className="text-indigo-600" />
-                  </div>
-                  <span className="text-emerald-600 text-xs font-semibold bg-emerald-50 px-2 py-1 rounded-full">
-                     +12%
-                  </span>
-               </div>
-               <p className="text-on-surface-variant uppercase">
-                  Total Products
-               </p>
-               <p className="text-2xl font-bold mt-1.5">{allProducts.length}</p>
-            </div>
-
-            <div className="bg-surface-container border border-surface-variant p-8 rounded-xl shadow-sm h-42">
-               <div className="flex justify-between items-start mb-4">
-                  <div className="p-2 bg-orange-50 rounded-lg">
-                     <WarningIcon className="text-orange-600" />
-                  </div>
-                  <span className="text-orange-600 text-xs font-semibold bg-orange-50 px-2 py-1 rounded-full">
-                     8 items
-                  </span>
-               </div>
-               <p className="text-on-surface-variant uppercase">Low Stock</p>
-               <p className="text-2xl font-bold mt-1.5">42</p>
-            </div>
-
-            <div className="bg-surface-container border border-surface-variant p-8 rounded-xl shadow-sm h-42">
-               <div className="flex justify-between items-start mb-4">
-                  <div className="p-2 bg-emerald-50 rounded-lg">
-                     <PaymentsIcon className="text-emerald-600" />
-                  </div>
-               </div>
-               <p className="text-on-surface-variant uppercase">
-                  Inventory Value
-               </p>
-               <p className="text-2xl font-bold mt-1.5">$452.9k</p>
-            </div>
-
-            <div className="bg-surface-container border border-surface-variant p-8 rounded-xl shadow-sm h-42">
-               <div className="flex justify-between items-start mb-4">
-                  <div className="p-2 bg-purple-50 rounded-lg">
-                     <CategoryIcon className="text-purple-600" />
-                  </div>
-               </div>
-               <p className="text-on-surface-variant uppercase">
-                  Active Categories
-               </p>
-               <p className="text-2xl font-bold mt-1.5">24</p>
-            </div>
-         </div>
-
          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
-            {/* Filter Bar */}
+            {/* Filter */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface-container-low p-4 border-b border-outline-variant">
                <div className="relative w-full sm:w-64">
                   <FilterAltIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant !text-sm" />
@@ -241,6 +254,31 @@ const Products = () => {
                </div>
             </div>
 
+            {/* Bulk action bar — only shows when something is selected */}
+            {selectedIds.size > 0 && (
+               <div className="flex items-center justify-between gap-4 bg-primary/10 px-4 py-3 border-b border-outline-variant">
+                  <span className="text-sm font-medium text-on-surface">
+                     {selectedIds.size} product{selectedIds.size > 1 ? "s" : ""}{" "}
+                     selected
+                  </span>
+                  <div className="flex items-center gap-2">
+                     <button
+                        onClick={clearSelection}
+                        className="px-3 py-1.5 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors"
+                     >
+                        Clear
+                     </button>
+                     <button
+                        onClick={() => setOpenBulkDeleteModal(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-error border border-error/30 hover:bg-error/10 rounded-lg transition-colors"
+                     >
+                        <DeleteIcon className="!text-sm" />
+                        Delete Selected
+                     </button>
+                  </div>
+               </div>
+            )}
+
             {/* Loading */}
             {loading && (
                <div className="flex justify-center items-center py-20">
@@ -254,10 +292,17 @@ const Products = () => {
                   <table className="min-w-[850px] w-full text-left">
                      <thead>
                         <tr className="bg-surface-container-low text-left">
-                           <th className="px-6 py-4">
+                           <th className="px-6 py-4 text-on-surface-variant border-b border-outline-variant">
                               <input
                                  className="text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
                                  type="checkbox"
+                                 checked={allOnPageSelected}
+                                 ref={(ele) => {
+                                    if (ele)
+                                       ele.indeterminate = someOnPageSelected;
+                                 }}
+                                 onChange={toggleSelectAllOnPage}
+                                 disabled={currentProducts.length === 0}
                               />
                            </th>
                            {TABLE_HEADER.map((h) => (
@@ -296,13 +341,21 @@ const Products = () => {
                         ) : (
                            currentProducts.map((product) => (
                               <tr
-                                 className="hover:bg-surface-container-low transition-colors"
+                                 className={`hover:bg-surface-container-low transition-colors ${
+                                    selectedIds.has(product.id)
+                                       ? "bg-primary/5"
+                                       : ""
+                                 }`}
                                  key={product.id}
                               >
                                  <td className="px-6 py-4">
                                     <input
                                        className="text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
                                        type="checkbox"
+                                       checked={selectedIds.has(product.id)}
+                                       onChange={() =>
+                                          toggleSelectOne(product.id)
+                                       }
                                     />
                                  </td>
                                  <td className="px-8 py-4">
@@ -310,7 +363,7 @@ const Products = () => {
                                        <img
                                           alt={`${product.title} Image`}
                                           className="w-10 h-10 object-cover border border-slate-200 rounded-lg"
-                                          src={`${BASE_URL}${product.images[0]?.imageUrl}`}
+                                          src={`${BASE_URL}${product.primaryImageUrl}`}
                                        />
                                        <div>
                                           <p className="text-on-surface text-sm font-semibold">
@@ -318,14 +371,14 @@ const Products = () => {
                                           </p>
                                           {product.occasion && (
                                              <p className="text-on-surface-variant text-xs">
-                                                {product.occasion?.name}
+                                                {product?.occasion?.name}
                                              </p>
                                           )}
                                        </div>
                                     </div>
                                  </td>
                                  <td className="px-6 py-4">
-                                    {product.category?.name}
+                                    {product?.category?.name}
                                  </td>
                                  <td className="px-6 py-4">
                                     <p className="line-clamp-1">
@@ -361,93 +414,38 @@ const Products = () => {
             )}
 
             {/* Pagination */}
-            {!loading && totalPages > 1 && (
-               <div className="px-6 py-4 border-t border-outline-variant flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <p className="text-sm text-on-surface-variant">
-                     Page {currentPage} of {totalPages}
-                  </p>
-                  <div className="flex items-center gap-1">
-                     <button
-                        onClick={() =>
-                           setCurrentPage((p) => Math.max(1, p - 1))
-                        }
-                        disabled={currentPage === 1}
-                        className="flex items-center gap-1 px-3 py-1.5 text-on-surface-variant border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                     >
-                        <ChevronLeftIcon fontSize="small" />
-                     </button>
-
-                     {visiblePages[0] > 1 && (
-                        <>
-                           <button
-                              onClick={() => setCurrentPage(1)}
-                              className="w-8 h-8 flex items-center justify-center text-sm border border-outline-variant rounded hover:bg-surface-container-lowest transition-colors"
-                           >
-                              1
-                           </button>
-                           {visiblePages[0] > 2 && (
-                              <span className="px-1 text-on-surface-variant">
-                                 ...
-                              </span>
-                           )}
-                        </>
-                     )}
-
-                     {visiblePages.map((page) => (
-                        <button
-                           key={page}
-                           onClick={() => setCurrentPage(page)}
-                           className={`w-8 h-8 flex items-center justify-center rounded text-sm font-medium transition-colors ${
-                              currentPage === page
-                                 ? "bg-primary text-on-primary"
-                                 : "border border-outline-variant hover:bg-surface-container-lowest"
-                           }`}
-                        >
-                           {page}
-                        </button>
-                     ))}
-
-                     {visiblePages[visiblePages.length - 1] < totalPages && (
-                        <>
-                           {visiblePages[visiblePages.length - 1] <
-                              totalPages - 1 && (
-                              <span className="px-1 text-on-surface-variant">
-                                 ...
-                              </span>
-                           )}
-                           <button
-                              onClick={() => setCurrentPage(totalPages)}
-                              className="w-8 h-8 flex items-center justify-center text-sm border border-outline-variant rounded hover:bg-surface-container-lowest transition-colors"
-                           >
-                              {totalPages}
-                           </button>
-                        </>
-                     )}
-
-                     <button
-                        onClick={() =>
-                           setCurrentPage((p) => Math.min(totalPages, p + 1))
-                        }
-                        disabled={currentPage === totalPages}
-                        className="flex items-center gap-1 px-3 py-1.5 text-on-surface-variant border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                     >
-                        <ChevronRightIcon fontSize="small" />
-                     </button>
-                  </div>
-               </div>
-            )}
+            <Pagination
+               itemsPerPage={ITEMS_PER_PAGE}
+               maxVisiblePages={MAX_VISIBLE_PAGES}
+               currentPage={currentPage}
+               setCurrentPage={setCurrentPage}
+               totalItems={filteredProducts.length}
+               loading={loading}
+            />
          </div>
 
-         {/* Delete Modal */}
+         {/* Single Delete Modal */}
          {openDeletedModal && deleteProduct && (
             <DeletedModal
                isOpen={openDeletedModal}
-               productName={deleteProduct.title}
+               name={deleteProduct.title}
                onClose={() => {
                   setOpenDeletedModal(false);
                   setDeleteProduct(null);
                }}
                onConfirm={handleDeleteProduct}
+               status="soft"
+            />
+         )}
+
+         {/* Bulk Delete Modal */}
+         {openBulkDeleteModal && (
+            <DeletedModal
+               isOpen={openBulkDeleteModal}
+               name={`${selectedIds.size} selected product${selectedIds.size > 1 ? "s" : ""}`}
+               onClose={() => setOpenBulkDeleteModal(false)}
+               onConfirm={handleBulkDelete}
+               mode="soft"
             />
          )}
       </>

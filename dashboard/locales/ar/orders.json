@@ -1,0 +1,25 @@
+{
+   "title": "الطلبات",
+   "subTitle": "إدارة وتتبع دورة مشتريات العملاء.",
+   "totalOrders": "إجمالي الطلبات",
+   "status": {
+      "all": "الكل",
+      "pending": "قيد الانتظار",
+      "shipped": "تم الشحن",
+      "delivered": "تم التسليم",
+      "completed": "مكتمل",
+      "cancelled": "ملغي"
+   },
+   "revenue": "الإيرادات",
+   "table": {
+      "filter": "تصفية حسب الحالة",
+      "id": "رقم الطلب",
+      "customer": "العميل",
+      "date": "التاريخ",
+      "amount": "المبلغ",
+      "status": "الحالة",
+      "actions": "الإجراءات",
+      "showingResults": "عرض {{from}} إلى {{to}} من أصل {{total}} نتيجة",
+      "pound": "جنية"
+   }
+}

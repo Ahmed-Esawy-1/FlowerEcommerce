@@ -1,10 +1,21 @@
-import React from "react";
-
 import EventIcon from "@mui/icons-material/Event";
-import { BASE_URL } from "../api/config";
-import { Link } from "react-router";
-const CollectionCard = ({ data, fallbackIcon }) => {
+import { BASE_URL } from "@/api/config";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useEffect } from "react";
+
+const CollectionCard = ({
+   data,
+   fallbackIcon,
+   setDeletedata, // setDeletedata(Data)
+   setOpenDeletedModal, // setOpenDeletedModal(Boolean)
+   onEdit, // onEdit(Data)
+}) => {
    const Icon = fallbackIcon || EventIcon;
+   const { language } = useLanguage();
+
+   useEffect(() => {
+      console.log(data);
+   }, [data]);
 
    return (
       <div className="group bg-surface-container border border-surface-variant hover:border-primary rounded-xl overflow-hidden transition-all duration-300">
@@ -13,7 +24,7 @@ const CollectionCard = ({ data, fallbackIcon }) => {
             {data.imageUrl ? (
                <img
                   src={`${BASE_URL}${data.imageUrl}`}
-                  alt={data.name}
+                  alt={data.nameEn}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                />
             ) : (
@@ -27,38 +38,25 @@ const CollectionCard = ({ data, fallbackIcon }) => {
             )}
 
             <div className="absolute inset-0 bg-gradient-to-t from-surface-container/90 to-transparent" />
-
-            {data.badge && (
-               <div className="absolute bottom-4 left-4">
-                  <div className="bg-primary-container rounded-full text-on-primary-container text-[10px] uppercase tracking-tighter font-bold px-2 py-0.5">
-                     {data.badge}
-                  </div>
-               </div>
-            )}
          </div>
 
          {/* Content */}
          <div className="p-4">
             <h3 className="text-on-surface text-xl font-semibold mb-2">
-               {data.name}
+               {language == "en" ? data.nameEn : data.nameAr}
             </h3>
 
-            {/* <p className="text-on-surface-variant mb-8 line-clamp-2">
-               {data.description || "No description provided."}
-            </p> */}
-
             <div className="flex items-center gap-2 border-t border-surface-variant pt-4">
-               <Link
-                  to={`/datas/update-data/${data.id}`}
+               <button
+                  onClick={() => onEdit(data)}
                   className="flex-1 py-2 px-3 text-center text-on-surface-variant hover:text-primary font-semibold border border-surface-variant rounded-lg hover:bg-surface-variant transition-colors"
                >
                   Update
-               </Link>
+               </button>
 
                <button
                   onClick={() => {
                      setDeletedata(data);
-
                      setOpenDeletedModal(true);
                   }}
                   className="flex-1 py-2 px-3 text-on-surface-variant hover:text-error font-semibold border border-surface-variant rounded-lg hover:bg-surface-variant transition-colors"

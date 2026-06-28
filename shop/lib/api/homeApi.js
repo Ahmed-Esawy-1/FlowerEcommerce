@@ -5,9 +5,26 @@ export const homeApi = createApi({
 
    baseQuery: fetchBaseQuery({
       baseUrl: process.env.NEXT_PUBLIC_API_URL + "/api",
+      credentials: "include",
    }),
 
    endpoints: (builder) => ({
+      login: builder.mutation({
+         query: (credentials) => ({
+            url: "/auth/login",
+            method: "POST",
+            body: credentials,
+            credentials: "include",
+         }),
+      }),
+
+      getMe: builder.query({
+         query: () => ({
+            url: "/auth/me",
+            credentials: "include",
+         }),
+      }),
+
       getCategories: builder.query({
          query: () => "/categories",
       }),
@@ -16,30 +33,51 @@ export const homeApi = createApi({
          query: () => "/occasions",
       }),
 
+      getColors: builder.query({
+         query: () => "/colors",
+      }),
+
       getProducts: builder.query({
-         query: () => "/products",
+         query: (params) => ({
+            url: "/products",
+            params,
+         }),
+      }),
+
+      getProduct: builder.query({
+         query: (id) => `/products/${id}`,
+      }),
+
+      getPriceRange: builder.query({
+         query: () => "/products/price-range",
       }),
 
       getBestSellers: builder.query({
          query: () => "/products/best-sellers",
       }),
 
-      getSections: builder.query({
-         query: () => "/sections",
-         // only return active sections
-         // transformResponse: (res) => res.filter((s) => s.isActive),
+      getSectionSummaries: builder.query({
+         query: () => "/sections/summaries",
       }),
 
-      // getProducts: builder.query({
-      //    query: () => "/products",
-      // }),
+      getSectionProducts: builder.query({
+         query: (sectionId) => `/sections/${sectionId}/products`,
+      }),
+
+      
    }),
 });
 
 export const {
+   useLoginMutation,
+   useGetMeQuery,
    useGetCategoriesQuery,
-   useGetProductsQuery,
    useGetOccasionsQuery,
+   useGetColorsQuery,
+   useGetProductsQuery,
+   useGetProductQuery,
+   useGetPriceRangeQuery,
    useGetBestSellersQuery,
-   useGetSectionsQuery,
+   useGetSectionSummariesQuery,
+   useGetSectionProductsQuery,
 } = homeApi;

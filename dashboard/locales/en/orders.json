@@ -1,0 +1,26 @@
+{
+   "title": "Orders",
+   "subTitle": "Manage and track your customer purchase lifecycle.",
+   "totalOrders": "Total Orders",
+   "status": {
+      "all": "All",
+      "pending": "Pending",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+   },
+
+   "revenue": "Revenue",
+   "table": {
+      "filter": "Filter by status",
+      "id": "Order Id",
+      "customer": "Customer",
+      "date": "Date",
+      "amount": "Amount",
+      "status": "Status",
+      "actions": "Actions",
+      "showingResults": "Showing {{from}} to {{to}} of {{total}} results",
+      "pound": "EGP"
+   }
+}

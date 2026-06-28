@@ -1,0 +1,35 @@
+{
+   "title": "نظرة عامة على لوحة التحكم",
+   "subTitle": "متابعة مؤشرات الأداء الرئيسية والبيانات التشغيلية.",
+   "dateRange": "آخر 30 يومًا",
+   "exportReport": "تصدير التقرير",
+
+   "orders": {
+      "title": "أحدث الطلبات",
+      "subTitle": "آخر طلبات العملاء",
+      "viewAll": "عرض جميع الطلبات",
+      "order": "طلب",
+      "customer": "العميل",
+      "currency": "ج.م",
+      "status": {
+         "pending": "قيد الانتظار",
+         "processing": "قيد التنفيذ",
+         "completed": "مكتمل",
+         "cancelled": "ملغي"
+      }
+   },
+
+   "cards": {
+      "products": "إجمالي المنتجات",
+      "orders": "إجمالي الطلبات",
+      "categories": "إجمالي التصنيفات",
+      "occasions": "إجمالي المناسبات"
+   },
+
+   "topProducts": {
+      "title": "المنتجات الأكثر طلبًا",
+      "subTitle": "المنتجات الأعلى مبيعًا",
+      "orderCount": "عدد الطلبات",
+      "ordersTooltip": "عدد الطلبات: {{count}}"
+   }
+}
