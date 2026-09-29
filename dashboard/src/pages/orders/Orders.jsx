@@ -117,7 +117,7 @@ const Orders = () => {
          {/* Header */}
          <div className="mb-8">
             <h1 className="page-title">{t("title")}</h1>
-            <p className="page-subtitle">{t("subTitle")}</p>
+            <p className="page-subtitle">{t("subtitle")}</p>
          </div>
 
          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
@@ -183,6 +183,7 @@ const Orders = () => {
                      </tr>
                   </thead>
                   <tbody className="divide-y divide-outline-variant">
+                     {/* LOADING */}
                      {loading && (
                         <tr>
                            <td colSpan={TABLE_HEADER.length} className="py-20">
@@ -193,6 +194,7 @@ const Orders = () => {
                         </tr>
                      )}
 
+                     {/* NO ORDERS */}
                      {noResults && (
                         <tr>
                            <td colSpan={TABLE_HEADER.length} className="py-16">
@@ -220,7 +222,7 @@ const Orders = () => {
                            </td>
                         </tr>
                      )}
-
+                     {/* ORDERS */}
                      {hasResults &&
                         orders.map((order) => (
                            <tr

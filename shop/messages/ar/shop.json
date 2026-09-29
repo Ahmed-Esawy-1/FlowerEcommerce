@@ -1,0 +1,18 @@
+{
+    "breadcrumbHome": "الرئيسية",
+    "breadcrumbShop": "تنسيقات الزهور",
+    "title": "اكتشف مجموعتنا",
+    "filters": "تصفية",
+    "products": "منتج",
+    "loadMore": "عرض المزيد",
+
+    "filter": {
+        "title": "التصفية",
+        "description": "قم بتصفية اختيارك",
+        "categories": "التصنيفات",
+        "palette": "الألوان",
+        "price Range": "السعر",
+        "occasions": "المناسبات",
+        "clear": "حذف الكل"
+    }
+}

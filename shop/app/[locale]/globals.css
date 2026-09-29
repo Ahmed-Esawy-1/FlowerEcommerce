@@ -2,100 +2,172 @@
 
 /* Theme */
 @theme {
-   --color-primary: #8b2040;
-   --color-text: #62748e;
-   --color-background: #ffffff;
+    --color-primary: #8b2040;
+    --color-primary-dark: #4a1121;
+    --color-rose: #c98ba0;
+    --color-gold: #b08d57;
+    --color-sage: #8a9678;
+    --color-marble: #f3ecdd;
+    --color-marble-light: #fdfbf7;
+    --color-ink: #3d1420;
+    --color-text: #62748e;
 
-   --radius: 0.5rem;
-   --radius-xl: 1rem;
-   --radius-2xl: 1.5rem;
+    --radius: 0.5rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.5rem;
 }
 
-/* Font */
+/* FONT */
 :root {
-   /* --font-heading: var(--font-playwrite);
-   --font-accent: var(--font-noto-serif); */
-   --font-body: var(--font-body-en);
-   --font-heading: var(--font-heading-en);
-   --font-accent: var(--font-accent-en);
+    --font-body: var(--font-body-en);
+    --font-heading: var(--font-heading-en);
+    --font-accent: var(--font-accent-en);
 }
 
 html[lang="ar"] {
-   --font-heading: var(--font-heading-ar);
-   --font-body: var(--font-body-ar);
-   --font-accent: var(--font-heading-ar);
+    --font-heading: var(--font-heading-ar);
+    --font-body: var(--font-body-ar);
+    --font-accent: var(--font-heading-ar);
 }
 
-/* Base */
+/* BODY */
 body {
-   font-family: var(--font-body);
-   background: var(--color-background);
-   color: var(--color-text);
+    font-family: var(--font-body);
+    /* background: var(--color-background); */
+    color: var(--color-text);
 }
 
+body {
+    background-color: var(--color-marble-light);
+    background-image:
+      /* gold "vein" streaks, mimicking marble */
+        linear-gradient(
+            115deg,
+            transparent 20%,
+            rgba(176, 141, 87, 0.1) 35%,
+            transparent 50%
+        ),
+        linear-gradient(
+            245deg,
+            transparent 30%,
+            rgba(176, 141, 87, 0.07) 45%,
+            transparent 60%
+        ),
+        /* soft color pools */
+        radial-gradient(
+                circle at 8% 15%,
+                rgba(139, 32, 64, 0.09),
+                transparent 30%
+            ),
+        radial-gradient(
+            circle at 92% 85%,
+            rgba(139, 32, 64, 0.07),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at 85% 10%,
+            rgba(201, 139, 160, 0.1),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 15% 90%,
+            rgba(138, 150, 120, 0.08),
+            transparent 30%
+        ),
+        /* base */
+        linear-gradient(
+                180deg,
+                var(--color-marble-light) 0%,
+                var(--color-marble) 100%
+            );
+    background-attachment: fixed;
+}
 
-/* Utilities */
+/* UTILITIES */
 .font-heading {
-   font-family: var(--font-heading);
+    font-family: var(--font-heading);
 }
 
 .font-body {
-   font-family: var(--font-body);
+    font-family: var(--font-body);
 }
 
 .font-accent {
-   font-family: var(--font-accent);
+    font-family: var(--font-accent);
 }
 
-/* =========================
-   CUSTOM UTILITIES
-========================= */
-
+/* CUSTOM UTILITIES */
 @utility glass-effect {
-   backdrop-filter: blur(8px);
-   background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    background-color: rgba(255, 255, 255, 0.8);
 }
 
 @utility product-action {
-   opacity: 0;
-   transform: translateY(10px);
-   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-   .group:hover & {
-      opacity: 1;
-      transform: translateY(0);
-   }
+    .group:hover & {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* =========================
-   LUXURY BUTTON
-========================= */
-
 .luxury-button {
-   @apply px-10 py-4 rounded-full font-medium text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2;
+    @apply px-10 py-4 rounded-full font-medium text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2;
 }
 
 /* 404 TEXT EFFECT */
-
 .text-404-gradient {
-   background: linear-gradient(
-      180deg,
-      rgba(74, 29, 77, 0.25) 0%,
-      rgba(164, 17, 212, 0.05) 100%
-   );
-   -webkit-background-clip: text;
-   -webkit-text-fill-color: transparent;
+    background: linear-gradient(
+        180deg,
+        rgba(74, 29, 77, 0.25) 0%,
+        rgba(164, 17, 212, 0.05) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-/* Password Eye */
+/* HERO SPARKLE */
+@keyframes twinkle {
+    0%,
+    100% {
+        opacity: 0.15;
+        transform: scale(0.8);
+    }
+    50% {
+        opacity: 0.9;
+        transform: scale(1.1);
+    }
+}
 
+.sparkle {
+    animation: twinkle 3.5s ease-in-out infinite;
+}
+
+.hero-marble-bg {
+    background:
+        radial-gradient(
+            circle at 15% 20%,
+            rgba(176, 141, 87, 0.08),
+            transparent 40%
+        ),
+        radial-gradient(
+            circle at 85% 75%,
+            rgba(139, 32, 64, 0.06),
+            transparent 45%
+        ),
+        var(--color-marble);
+}
+
+/* PASSWORD EYE */
 input[type="password"]::-webkit-textfield-decoration-container,
 input[type="password"]::-webkit-credentials-auto-fill-button,
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
-   display: none !important;
+    display: none !important;
 }
 
 input[type="password"] {
-   appearance: none;
+    appearance: none;
 }

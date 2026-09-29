@@ -1,0 +1,23 @@
+{
+    "steps": { "info": "Info", "review": "Review", "payment": "Payment" },
+    "shippingInfo": "Shipping Information",
+    "address": "Delivery Address",
+    "addressPlaceholder": "Street, building, city...",
+    "reviewOrder": "Review Your Order",
+    "qty": "Qty",
+    "shipTo": "Shipping to",
+    "subtotal": "Subtotal",
+    "packaging": "Packaging Fee",
+    "total": "Total",
+    "choosePayment": "Choose Payment Method",
+    "paymentMethods": {
+        "cod": "Cash on Delivery",
+        "card": "Credit / Debit Card",
+        "wallet": "Mobile Wallet"
+    },
+    "back": "Back",
+    "next": "Next",
+    "placeOrder": "Place Order",
+    "placingOrder": "Placing Order...",
+    "orderFailed": "Something went wrong. Please try again."
+}

@@ -28,7 +28,7 @@ const Header = ({ onMenuClick }) => {
             <MenuIcon />
          </button>
 
-         {/* Search bar */}
+         {/* Search Bar */}
          <div
             className={`items-center flex-1 ${
                searchOpen ? "flex" : "hidden md:flex"

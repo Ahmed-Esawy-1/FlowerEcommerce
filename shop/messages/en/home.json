@@ -1,0 +1,34 @@
+{
+    "occasionsTitle": "Shop by Occasion",
+    "occasionsDesc": "Find the perfect expression for your feelings",
+    "categoriesTitle": "Shop by Category",
+    "categoriesDesc": "Discover flowers for every moment",
+
+    "hero": {
+        "badge": "Luxury Floral Collection",
+        "titleLine1": "Gift the",
+        "titleLine2": "Spirit of Giving",
+        "description": "Discover our curated selection of bespoke floral arrangements and luxury gift sets.",
+        "shopNow": "Shop Now",
+        "viewCatalog": "View Catalog"
+    },
+
+    "brands": "Brands",
+
+    "signup": {
+        "titleLine1": "Celebrate life's",
+        "titleLine2": "beautiful moments.",
+        "description": "Sign up for our newsletter to receive weekly inspiration, exclusive offers, and the latest flower collections.",
+        "button": "Subscribe"
+    },
+
+    "footer": {
+        "tagline": "Elevating the art of gifting through sophisticated floral designs and premium curated experiences.",
+        "linksTitle": "Links",
+        "trackOrder": "Track My Order",
+        "contactUs": "Contact Us",
+        "getInTouchTitle": "Get in Touch",
+        "address": "Tanta, Gharbia, Egypt",
+        "copyright": "© 2026 Flow Flowers and Gifts. All rights reserved."
+    }
+}

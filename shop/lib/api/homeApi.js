@@ -1,83 +1,88 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const homeApi = createApi({
-   reducerPath: "homeApi",
+    reducerPath: "homeApi",
 
-   baseQuery: fetchBaseQuery({
-      baseUrl: process.env.NEXT_PUBLIC_API_URL + "/api",
-      credentials: "include",
-   }),
+    baseQuery: fetchBaseQuery({
+        baseUrl: process.env.NEXT_PUBLIC_API_URL + "/api",
+        credentials: "include",
+        // prepareHeaders: (headers) => {
+        //     // Only run in browser, not on server
+        //     if (typeof document !== "undefined") {
+        //         const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+        //         if (match) {
+        //             headers.set("X-XSRF-TOKEN", decodeURIComponent(match[1]));
+        //         }
+        //     }
+        //     return headers;
+        // },
+    }),
 
-   endpoints: (builder) => ({
-      login: builder.mutation({
-         query: (credentials) => ({
-            url: "/auth/login",
-            method: "POST",
-            body: credentials,
-            credentials: "include",
-         }),
-      }),
+    tagTypes: ["Categories", "Occasions", "Products", "SectionProducts"],
 
-      getMe: builder.query({
-         query: () => ({
-            url: "/auth/me",
-            credentials: "include",
-         }),
-      }),
+    endpoints: (builder) => ({
+        // Collections
+        getCategories: builder.query({
+            query: () => "/categories",
+            providesTags: ["Categories"],
+        }),
 
-      getCategories: builder.query({
-         query: () => "/categories",
-      }),
+        getOccasions: builder.query({
+            query: () => "/occasions",
+            providesTags: ["Occasions"],
+        }),
 
-      getOccasions: builder.query({
-         query: () => "/occasions",
-      }),
+        getColors: builder.query({
+            query: () => "/colors",
+        }),
 
-      getColors: builder.query({
-         query: () => "/colors",
-      }),
+        // Products
+        getProducts: builder.query({
+            query: (params) => ({
+                url: "/shop/products",
+                params,
+            }),
+            // providesTags: (result) =>
+            //     result
+            //         ? [
+            //               ...result.map(({ id }) => ({
+            //                   type: "Products",
+            //                   id,
+            //               })),
+            //               "Products",
+            //           ]
+            //         : ["Products"],
+        }),
 
-      getProducts: builder.query({
-         query: (params) => ({
-            url: "/products",
-            params,
-         }),
-      }),
+        // Specific Product
+        getProduct: builder.query({
+            query: (id) => `/shop/products/${id}`,
+            providesTags: (result, error, id) => [{ type: "Products", id }],
+        }),
 
-      getProduct: builder.query({
-         query: (id) => `/products/${id}`,
-      }),
+        getPriceRange: builder.query({
+            query: () => "/shop/products/price-range",
+            // Cache for 5 minutes
+        }),
 
-      getPriceRange: builder.query({
-         query: () => "/products/price-range",
-      }),
-
-      getBestSellers: builder.query({
-         query: () => "/products/best-sellers",
-      }),
-
-      getSectionSummaries: builder.query({
-         query: () => "/sections/summaries",
-      }),
-
-      getSectionProducts: builder.query({
-         query: (sectionId) => `/sections/${sectionId}/products`,
-      }),
-
-      
-   }),
+        // Section Products - optimized for lazy loading
+        getSectionProducts: builder.query({
+            query: (sectionId) => ({
+                url: `/sections/${sectionId}/products`,
+            }),
+            providesTags: (result, error, sectionId) => [
+                { type: "SectionProducts", id: sectionId },
+            ],
+        }),
+    }),
 });
 
 export const {
-   useLoginMutation,
-   useGetMeQuery,
-   useGetCategoriesQuery,
-   useGetOccasionsQuery,
-   useGetColorsQuery,
-   useGetProductsQuery,
-   useGetProductQuery,
-   useGetPriceRangeQuery,
-   useGetBestSellersQuery,
-   useGetSectionSummariesQuery,
-   useGetSectionProductsQuery,
+    useGetCategoriesQuery,
+    useGetOccasionsQuery,
+    useGetColorsQuery,
+    useGetProductsQuery,
+    useGetProductQuery,
+    useGetPriceRangeQuery,
+    useGetSectionProductsQuery,
 } = homeApi;

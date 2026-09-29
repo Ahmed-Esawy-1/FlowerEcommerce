@@ -1,22 +1,38 @@
 const BASE = process.env.NEXT_PUBLIC_API_URL + "/api";
 
+const fetchOptions = {
+    next: { revalidate: 3600, tags: ["collections"] },
+};
+
 export async function fetchCategories() {
-   const res = await fetch(`${BASE}/categories`, {
-      next: { revalidate: 60 },
-   });
-   return res.json();
+    try {
+        const res = await fetch(`${BASE}/categories`, fetchOptions);
+        if (!res.ok) return [];
+        return res.json();
+    } catch (error) {
+        console.error("Failed to fetch categories:", error);
+        return [];
+    }
 }
 
 export async function fetchOccasions() {
-   const res = await fetch(`${BASE}/occasions`, {
-      next: { revalidate: 60 },
-   });
-   return res.json();
+    try {
+        const res = await fetch(`${BASE}/occasions`, fetchOptions);
+        if (!res.ok) return [];
+        return res.json();
+    } catch (error) {
+        console.error("Failed to fetch occasions:", error);
+        return [];
+    }
 }
 
 export async function fetchSectionSummaries() {
-   const res = await fetch(`${BASE}/sections/summaries`, {
-      next: { revalidate: 60 },
-   });
-   return res.json();
+    try {
+        const res = await fetch(`${BASE}/sections/summaries`, fetchOptions);
+        if (!res.ok) return [];
+        return res.json();
+    } catch (error) {
+        console.error("Failed to fetch section summaries:", error);
+        return [];
+    }
 }

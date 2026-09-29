@@ -1,0 +1,39 @@
+{
+    "title": "My Orders",
+    "subtitle": "Every bouquet, tracked from our door to yours",
+    "empty": "You haven't placed any orders yet",
+    "browse": "Browse Flowers",
+    "order": "Order",
+    "placedOn": "Placed on",
+    "items": "item(s)",
+    "total": "Total",
+    "trackOrder": "Track Order",
+    "orderDetail": {
+        "backToOrders": "Back to orders",
+        "order": "Order",
+        "placedOn": "Placed on",
+        "deliveringTo": "Delivering to",
+        "paymentMethod": "Payment Method",
+        "itemsInOrder": "Items in this order",
+        "subtotal": "Subtotal",
+        "delivery": "Delivery Fee",
+        "total": "Total",
+        "estimatedDelivery": "Estimated delivery"
+    },
+
+    "status": {
+        "placed": "Order Placed",
+        "confirmed": "Confirmed",
+        "preparing": "Preparing Your Bouquet",
+        "outForDelivery": "Out for Delivery",
+        "delivered": "Delivered"
+    },
+
+    "statusDesc": {
+        "placed": "We've received your order and we're getting it ready.",
+        "confirmed": "Your order is confirmed and queued with our florists.",
+        "preparing": "Our florists are hand-arranging your bouquet.",
+        "outForDelivery": "Your bouquet is on its way to you.",
+        "delivered": "Delivered. We hope it made someone's day."
+    }
+}

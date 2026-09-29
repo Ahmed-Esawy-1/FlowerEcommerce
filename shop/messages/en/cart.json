@@ -1,0 +1,14 @@
+{
+    "title": "Your Cart",
+    "subtitle": "Review your luxury floral selection before checkout.",
+    "emptyTitle": "Your cart is empty",
+    "emptyDesc": "Add some items to get started!",
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "packaging": "Luxury Packaging",
+    "total": "Total",
+    "checkout": "Proceed to Checkout",
+    "securePayment": "Secure 256-bit SSL Encrypted Payment",
+    "promiseTitle": "The Flow Flowers Promise",
+    "promiseDesc": "Hand-selected fresh blooms guaranteed to stay vibrant for 7 days or we replace them."
+}

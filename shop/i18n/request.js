@@ -1,15 +1,37 @@
 import { getRequestConfig } from "next-intl/server";
 import { routing } from "./routing";
 
+const namespaces = [
+    "common",
+    "navigation",
+    "home",
+    "collections",
+    "shop",
+    "cart",
+    "checkout",
+    "orders",
+    "product",
+    "auth",
+];
+
 export default getRequestConfig(async ({ requestLocale }) => {
-   let locale = await requestLocale;
+    let locale = await requestLocale;
 
-   if (!locale || !routing.locales.includes(locale)) {
-      locale = routing.defaultLocale;
-   }
+    if (!locale || !routing.locales.includes(locale)) {
+        locale = routing.defaultLocale;
+    }
 
-   return {
-      locale,
-      messages: (await import(`../messages/${locale}.json`)).default,
-   };
+    const modules = await Promise.all(
+        namespaces.map((ns) => import(`../messages/${locale}/${ns}.json`)),
+    );
+
+    const messages = namespaces.reduce((acc, ns, i) => {
+        acc[ns] = modules[i].default;
+        return acc;
+    }, {});
+
+    return {
+        locale,
+        messages,
+    };
 });

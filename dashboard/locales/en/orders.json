@@ -1,6 +1,6 @@
 {
    "title": "Orders",
-   "subTitle": "Manage and track your customer purchase lifecycle.",
+   "subtitle": "Manage and track your customer purchase lifecycle.",
    "totalOrders": "Total Orders",
    "status": {
       "all": "All",

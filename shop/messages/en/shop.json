@@ -1,0 +1,18 @@
+{
+    "breadcrumbHome": "Home",
+    "breadcrumbShop": "Floral Arrangements",
+    "title": "Explore Our Collection",
+    "filters": "Filters",
+    "products": "products",
+    "loadMore": "Load More",
+
+    "filter": {
+        "title": "Filters",
+        "description": "Refine your selection",
+        "categories": "Categories",
+        "palette": "Palette",
+        "price Range": "Your Price Range",
+        "occasions": "Occasions",
+        "clear": "Clear All"
+    }
+}
